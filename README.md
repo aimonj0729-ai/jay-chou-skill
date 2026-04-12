@@ -425,7 +425,7 @@ python3 test_runner.py
 
 - **Issues**: bug 报告、功能请求
 - **Discussions**: 分享你的创作、讨论音乐理论
-- **Twitter/X**: @YourHandle
+- **Email**:aimonj0729@gmail.com
 - 欢迎晒你用这个 skill 写的歌！
 
 ---
