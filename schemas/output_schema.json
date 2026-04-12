@@ -1,0 +1,198 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://skills.claude/jay-chou/output.schema.json",
+  "title": "Jay Chou Skill — 10-Section Song Plan Output",
+  "description": "10 段式原创歌曲方案的结构化表示。对应 system_prompt.md 的输出模板。",
+  "type": "object",
+  "required": [
+    "song_concept",
+    "emotional_arc",
+    "structure",
+    "chord_direction",
+    "melody_direction",
+    "lyric_direction",
+    "arrangement_direction",
+    "hook_concept",
+    "risk_check",
+    "de_similarization"
+  ],
+  "properties": {
+    "song_concept": {
+      "type": "string",
+      "description": "1. 核心概念。一句话说清这首歌在讲什么、给谁听、带什么体验。"
+    },
+    "emotional_arc": {
+      "type": "object",
+      "description": "2. 情绪轨迹。",
+      "required": ["anchors", "curve"],
+      "properties": {
+        "anchors": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 3,
+          "maxItems": 6,
+          "description": "3–5 个情绪锚点，按时间顺序。"
+        },
+        "curve": {
+          "type": "string",
+          "description": "情绪曲线的文字描述。如 '克制 → 起势 → 释放 → 退回 → 最大释放 → 留白'。"
+        }
+      }
+    },
+    "structure": {
+      "type": "object",
+      "description": "3. 结构建议。",
+      "required": ["sections"],
+      "properties": {
+        "sections": {
+          "type": "array",
+          "description": "段落列表，按顺序。",
+          "items": {
+            "type": "object",
+            "required": ["name", "bars"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "enum": ["Intro", "Verse1", "Verse2", "PreChorus1", "PreChorus2", "Chorus1", "Chorus2", "Chorus3", "Bridge", "Interlude", "Outro"]
+              },
+              "bars": { "type": "integer", "minimum": 1, "maximum": 32 },
+              "note": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "chord_direction": {
+      "type": "object",
+      "description": "4. 和声方向。",
+      "properties": {
+        "key": { "type": "string" },
+        "mode": { "type": "string", "enum": ["major", "minor", "modal"] },
+        "progressions": {
+          "type": "object",
+          "description": "每段的功能和声标记。",
+          "properties": {
+            "verse": { "type": "string" },
+            "pre_chorus": { "type": "string" },
+            "chorus": { "type": "string" },
+            "bridge": { "type": "string" }
+          }
+        },
+        "color_chords": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "借用和弦和色彩点缀。例：['iv (borrowed)', 'bVII before chorus', 'Neapolitan in bridge']"
+        },
+        "modulation": {
+          "type": "string",
+          "description": "副歌抬升或转调的手法。"
+        }
+      }
+    },
+    "melody_direction": {
+      "type": "object",
+      "description": "5. 旋律设计建议。",
+      "properties": {
+        "verse": { "type": "string" },
+        "pre_chorus": { "type": "string" },
+        "chorus": { "type": "string" },
+        "bridge": { "type": "string" },
+        "hook_device": { "type": "string" }
+      }
+    },
+    "lyric_direction": {
+      "type": "object",
+      "description": "6. 歌词意象与叙事方案。",
+      "properties": {
+        "theme": { "type": "string" },
+        "perspective": { "type": "string" },
+        "timeline": { "type": "string" },
+        "keyword_pool": { "type": "array", "items": { "type": "string" } },
+        "image_pool": { "type": "array", "items": { "type": "string" } },
+        "rhyme_strategy": { "type": "string" },
+        "section_roles": {
+          "type": "object",
+          "properties": {
+            "verse": { "type": "string" },
+            "pre_chorus": { "type": "string" },
+            "chorus": { "type": "string" },
+            "bridge": { "type": "string" }
+          }
+        },
+        "sample_lines": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 6,
+          "items": {
+            "type": "object",
+            "properties": {
+              "section": { "type": "string" },
+              "text": { "type": "string" }
+            }
+          },
+          "description": "3–5 句原创示例。必须 100% 原创。"
+        }
+      }
+    },
+    "arrangement_direction": {
+      "type": "object",
+      "description": "7. 编曲推进方案。",
+      "properties": {
+        "intro": { "type": "string" },
+        "verse": { "type": "string" },
+        "pre_chorus": { "type": "string" },
+        "chorus": { "type": "string" },
+        "bridge": { "type": "string" },
+        "outro": { "type": "string" },
+        "rhythm_section": { "type": "string" },
+        "harmonic_bed": { "type": "string" },
+        "atmospheric_timbres": { "type": "string" }
+      }
+    },
+    "hook_concept": {
+      "type": "object",
+      "description": "8. 副歌 hook 构思。",
+      "properties": {
+        "motif_shape": { "type": "string" },
+        "range": { "type": "string" },
+        "rhythmic_pattern": { "type": "string" },
+        "lyrical_anchor": { "type": "string" }
+      }
+    },
+    "risk_check": {
+      "type": "object",
+      "description": "9. 原创性风险检查。对照 similarity_guard.md 的检测清单。",
+      "required": ["overall"],
+      "properties": {
+        "lyric_cliche": { "type": "string", "enum": ["PASS", "WARN", "BLOCK"] },
+        "image_density": { "type": "string", "enum": ["PASS", "WARN", "BLOCK"] },
+        "melody_pattern": { "type": "string", "enum": ["PASS", "WARN", "BLOCK"] },
+        "structure_template": { "type": "string", "enum": ["PASS", "WARN", "BLOCK"] },
+        "harmony_similarity": { "type": "string", "enum": ["PASS", "WARN", "BLOCK"] },
+        "hook_similarity": { "type": "string", "enum": ["PASS", "WARN", "BLOCK"] },
+        "arrangement_info": { "type": "string", "enum": ["PASS", "WARN", "BLOCK"] },
+        "style_recognition": { "type": "string", "enum": ["PASS", "WARN", "BLOCK"] },
+        "overall": { "type": "string", "enum": ["PASS", "WARN_WITH_REWRITES", "BLOCK"] },
+        "notes": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "de_similarization": {
+      "type": "object",
+      "description": "10. 去相似化建议。",
+      "properties": {
+        "required": { "type": "boolean" },
+        "actions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "target_section": { "type": "string" },
+              "issue": { "type": "string" },
+              "rewrite": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

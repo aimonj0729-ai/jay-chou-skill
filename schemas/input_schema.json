@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://skills.claude/jay-chou/input.schema.json",
+  "title": "Jay Chou Skill — User Request Input",
+  "description": "结构化的创作需求输入。所有字段都是可选，但 theme / emotion / reference_mood 至少要给一个，否则 Skill 会走冷启动澄清流程。",
+  "type": "object",
+  "properties": {
+    "theme": {
+      "type": "string",
+      "description": "一句话说清主题。例：'毕业前夜'、'深夜出租车'、'梅雨季的独处'。"
+    },
+    "emotion": {
+      "type": "object",
+      "description": "情绪曲线。起点情绪 → 终点情绪。",
+      "properties": {
+        "start": {
+          "type": "string",
+          "examples": ["克制", "内敛", "平静", "压抑", "孤独"]
+        },
+        "end": {
+          "type": "string",
+          "examples": ["释怀", "释放", "告别", "坦然", "感伤"]
+        }
+      }
+    },
+    "tempo": {
+      "type": "integer",
+      "minimum": 50,
+      "maximum": 140,
+      "description": "bpm。慢板 60–75，中速 80–100，轻 R&B 72–92。"
+    },
+    "genre_tags": {
+      "type": "array",
+      "description": "风格标签，多选。对照 system_prompt.md §风格参数库 A–E。",
+      "items": {
+        "type": "string",
+        "enum": [
+          "钢琴抒情流行",
+          "轻 R&B",
+          "慢板流行",
+          "中速摇摆",
+          "轻 lo-fi pulse",
+          "中国风叙事",
+          "电影感抒情",
+          "民谣清新流行",
+          "流行大调抒情",
+          "小调都市感"
+        ]
+      }
+    },
+    "structure_preference": {
+      "type": "string",
+      "description": "结构偏好。不给则默认钢琴抒情骨架。",
+      "enum": [
+        "default",
+        "piano-ballad-long-verse",
+        "chinese-narrative",
+        "r&b-urban",
+        "cinematic-no-pre"
+      ]
+    },
+    "instruments": {
+      "type": "array",
+      "description": "必须出现的乐器。对照 arrangement_planner.md 的音色库。",
+      "items": {
+        "type": "string",
+        "examples": ["acoustic-piano", "rhodes-ep", "strings", "pad-warm", "nylon-guitar", "guzheng", "dizi", "pipa"]
+      }
+    },
+    "vocal_range": {
+      "type": "string",
+      "description": "歌手音区。",
+      "enum": ["male-baritone", "male-tenor", "female-mezzo", "female-soprano", "unspecified"]
+    },
+    "reference_mood": {
+      "type": "string",
+      "description": "情绪/画面参考。一句话描述想让听众处于什么场景。例：'深夜独自走过便利店的那一瞬'。"
+    },
+    "hard_constraints": {
+      "type": "object",
+      "description": "硬性限制。",
+      "properties": {
+        "duration_sec": { "type": "integer", "minimum": 60, "maximum": 360 },
+        "ban_elements": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "禁用元素。例：['rap', 'assisted-vocal', 'english-lyrics']"
+        },
+        "required_elements": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "必须出现的元素。例：['piano-intro', 'bridge-falsetto']"
+        }
+      }
+    },
+    "output_format": {
+      "type": "string",
+      "description": "输出格式。默认 markdown，可选 json 方便机器解析。",
+      "enum": ["markdown", "json"],
+      "default": "markdown"
+    },
+    "style_weight": {
+      "type": "integer",
+      "description": "周杰伦风格比重 0–100。80=很像但有原创度（默认），50=一半像，20=只有影子。",
+      "minimum": 0,
+      "maximum": 100,
+      "default": 80
+    }
+  },
+  "anyOf": [
+    { "required": ["theme"] },
+    { "required": ["emotion"] },
+    { "required": ["reference_mood"] }
+  ]
+}
