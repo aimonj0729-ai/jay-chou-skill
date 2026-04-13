@@ -105,6 +105,62 @@
       "minimum": 0,
       "maximum": 100,
       "default": 80
+    },
+    "lyricist_persona": {
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": ["fang-wenshan", "huang-junlang", "jay-self", "auto"],
+          "description": "词人风格人格。fang-wenshan=方文山系古典白描，huang-junlang=黄俊郎系超现实暗黑，jay-self=周杰伦自填词系口语直觉，auto=自动匹配（默认）。"
+        },
+        {
+          "type": "object",
+          "description": "混合模式：指定主次人格和比例。",
+          "required": ["primary"],
+          "properties": {
+            "primary": {
+              "type": "string",
+              "enum": ["fang-wenshan", "huang-junlang", "jay-self"]
+            },
+            "secondary": {
+              "type": "string",
+              "enum": ["fang-wenshan", "huang-junlang", "jay-self"]
+            },
+            "ratio": {
+              "type": "string",
+              "description": "主次比例，如 '70:30'。",
+              "default": "70:30"
+            }
+          }
+        }
+      ],
+      "default": "auto"
+    },
+    "fusion": {
+      "type": "object",
+      "description": "跨风格融合设置。指定融合风格和比例。",
+      "properties": {
+        "style": {
+          "type": "string",
+          "description": "融合风格。可用预置库 ID 或自由描述。",
+          "examples": ["jazz", "electronic", "latin", "rnb-deep", "orchestral", "folk", "world", "trap", "80s synth-pop", "bossa nova"]
+        },
+        "ratio": {
+          "type": "string",
+          "description": "周杰伦侧:融合侧 比例。",
+          "enum": ["90:10", "70:30", "50:50", "30:70"],
+          "default": "70:30"
+        },
+        "focus_dimensions": {
+          "type": "array",
+          "description": "指定融合重点维度（可选，不指定则按默认权重）。",
+          "items": {
+            "type": "string",
+            "enum": ["harmony", "rhythm", "arrangement", "melody", "structure", "lyrics"]
+          }
+        }
+      },
+      "required": ["style"]
     }
   },
   "anyOf": [

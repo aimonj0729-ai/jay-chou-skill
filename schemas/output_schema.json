@@ -131,6 +131,11 @@
             }
           },
           "description": "3–5 句原创示例。必须 100% 原创。"
+        },
+        "lyricist_persona": {
+          "type": "string",
+          "description": "使用的词人人格。",
+          "enum": ["fang-wenshan", "huang-junlang", "jay-self", "auto", "mixed"]
         }
       }
     },
@@ -191,6 +196,33 @@
               "rewrite": { "type": "string" }
             }
           }
+        }
+      }
+    },
+    "fusion_notes": {
+      "type": "object",
+      "description": "11. 融合说明（仅融合模式输出）。",
+      "properties": {
+        "fusion_style": { "type": "string", "description": "融合风格名称。" },
+        "ratio": { "type": "string", "description": "融合比例，如 '70:30'。" },
+        "fused_dimensions": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "被融合的维度列表。"
+        },
+        "preserved_dimensions": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "保留在周杰伦侧的维度列表。"
+        },
+        "key_fusion_points": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "关键融合决策说明。"
+        },
+        "risk_notes": {
+          "type": "string",
+          "description": "融合风险提示。"
         }
       }
     }
