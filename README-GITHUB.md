@@ -28,6 +28,18 @@
 - **词人风格适配**：选择方文山（古典白描）、黄俊郎（超现实暗黑）、周杰伦自填词（口语直觉）三种词人人格，影响歌词的意象、句法、叙事和押韵
 - **跨风格融合**：将周杰伦风格与爵士/电子/拉丁/深度R&B/管弦乐/民谣/世界音乐/Trap 做有控制的融合，支持 90:10 到 30:70 的比例调节
 
+## Autopilot Updates
+
+<!-- github-autopilot:updates:start -->
+
+### 2026-04-23 22:20
+
+- 补上缺失的 `test_runner.py`，现在仓库可以直接校验 `test_cases/` 套件完整性，并支持对传入的生成结果做 10 段结构、Similarity Guard、冷启动规则检查。
+- README 同步补充了真实可执行的验证方式，避免出现“文档写了 `python3 test_runner.py`，仓库里却没有脚本”的断层。
+- 安装命令已改成当前仓库的真实 GitHub 地址，方便直接复制安装。
+
+<!-- github-autopilot:updates:end -->
+
 ### 📊 基于真实数据，不是凭空想象
 
 我们分析了 **148 首**周杰伦作品的音频报告（2000《Jay》→ 现在），提取了：
@@ -138,7 +150,7 @@ Outro: 逐轨减，Piano 单音 + Strings 长尾，最后 2 小节静默
 
 ```bash
 # 1. 克隆这个仓库到本地
-git clone https://github.com/yourusername/jay-chou-skill.git ~/.claude/skills/jay-chou
+git clone https://github.com/aimonj0729-ai/jay-chou-skill.git ~/.claude/skills/jay-chou
 
 # 2. 验证安装
 claude skill list | grep jay-chou
@@ -302,7 +314,7 @@ const output = await skill.run({
 - `song_analyzer.md`：知识根，9 维度规律 + 148 首统计
 - `melody/lyric/arrangement`：三个下游模块，从知识根取数据切片
 - `original_song_generator.md`：编排器，调用链 + 冲突解决
-- `test_runner.md`：验证脚本，可集成 CI/CD
+- `test_runner.py` + `test_runner.md`：可执行验证脚本 + 验收规范，可集成 CI/CD
 
 **效果**：理解如何构建可验证、可迭代、数据驱动的 AI 音乐 skill
 
@@ -341,7 +353,10 @@ const output = await skill.run({
 ```bash
 cd ~/.claude/skills/jay-chou
 python3 test_runner.py
-# 输出: 5 tests, 4 passed, 1 warn, quality: 84%
+# 校验 test_cases/ 套件结构，并生成 test-report.md
+
+python3 test_runner.py --output-dir ./generated_outputs
+# 在已有生成结果文件时，继续校验 10 段结构 / Similarity Guard / 冷启动规则
 ```
 
 ### 4. 多层次抽象架构
@@ -379,7 +394,7 @@ python3 test_runner.py
 ### 如何贡献你的音乐知识
 
 **发现 skill 生成的方案有问题？**
-- 运行 `test_runner.py` 生成报告
+- 运行 `test_runner.py` 生成基础报告，或用 `--output-dir` 校验真实输出
 - 在 Issues 里贴报告 + 你的改进建议
 - 我们一起更新 `song_analyzer.md` 的知识根
 
@@ -449,7 +464,7 @@ python3 test_runner.py
 **用了什么**：
 - 读了 `song_analyzer.md` 的知识根设计
 - 读了 `original_song_generator.md` 的编排器逻辑
-- 读了 `test_runner.md` 的验证框架
+- 跑了 `test_runner.py`，再对照 `test_runner.md` 的验收框架
 
 **结果**：fork 了这个 repo，做了个"Coldplay 风"的 skill
 
