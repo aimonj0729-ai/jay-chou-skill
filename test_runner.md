@@ -1,129 +1,117 @@
-# Test Runner —— 自动化验证脚本
+# Test Runner —— 回归套件与输出校验
 
-> 批量运行 test_01–05，自动验证 Skill 输出是否符合验收标准
+> `test_runner.py` 有两个职责：校验 `test_cases/` 回归套件本身，以及校验你已经保存到本地的生成结果。
 
-## 功能
+## 它实际会做什么
 
-- 读取 test_cases/*.md 的输入
-- 触发 Skill 生成输出
-- 验证：格式合规性 / 数据完整性 / similarity_guard 执行 / 统计指标
+### 模式 1：校验测试用例文档
 
-## 用法
+默认运行 `python3 test_runner.py` 时，脚本会检查 `test_cases/test_*.md` 是否具备最基本的回归结构：
+
+- 是否包含 `## 用途` / `## 输入` / `## 预期行为` / `## 验收清单`
+- 是否存在可复用的 fenced code 输入块
+- checklist 数量是否足够支撑回归
+
+### 模式 2：校验已保存的生成结果
+
+如果你已经在 Claude/Codex 里手动生成并保存了 markdown 输出，可以额外传给脚本：
+
+- `--output`：校验单个 test case 对应的一份输出
+- `--output-dir`：批量校验一个目录里的输出文件
+
+通用检查包括：
+
+- 10 段编号章节是否完整
+- 第 9 段是否包含 `PASS` / `WARN` / `BLOCK`
+- 第 10 段是否给出明确的去相似化建议
+
+针对 `test_01` 到 `test_05`，脚本还会做少量场景化检查，例如：
+
+- `test_01`：歌词示例句数量、Hook 描述粒度、是否显式出现 `C3`
+- `test_03`：东方万能词黑名单
+- `test_04`：复制请求是否被拒绝、是否出现高风险原句
+- `test_05`：第一次响应是否保持冷启动提问而不是直接出 10 段
+
+## 它不会做什么
+
+为避免误解，当前脚本 **不会**：
+
+- 自动调用 Claude / Codex 生成内容
+- 对 markdown 输出执行 JSON Schema 校验
+- 自动计算 LUFS、BPM、和弦次数等音乐统计指标
+
+`schemas/input_schema.json` 和 `schemas/output_schema.json` 目前是给结构化集成和人工对照使用的参考文件，不是 `test_runner.py` 的执行输入。
+
+## 常用命令
 
 ```bash
 cd ~/.claude/skills/jay-chou
+
+# 1) 只检查 test_cases/ 套件结构，并生成 test-report.md
 python3 test_runner.py
+
+# 2) 只检查一个 test case 文档
+python3 test_runner.py --test test_04.md
+
+# 3) 检查一个 test case + 它对应的一份已保存输出
+python3 test_runner.py --test test_04.md --output ./generated_outputs/test_04.md
+
+# 4) 批量检查目录下所有已保存输出
+python3 test_runner.py --output-dir ./generated_outputs
+
+# 5) 只打印报告，不写 test-report.md
+python3 test_runner.py --no-write-report
 ```
 
-## 验证清单
+## 输出文件命名约定
 
-### 格式验证（JSON Schema）
-- [ ] 输出严格符合 10 段模板（### 1. → ### 10.）
-- [ ] 所有必需字段存在且不为空
-- [ ] 数值字段在合理范围内（tempo: 60–140, LUFS: -30 to 0）
+使用 `--output-dir` 时，脚本按 `test_cases` 的 stem 找文件，因此目录里的文件名需要和测试用例一一对应：
 
-### 内容完整性
-- [ ] 第 9 段（Risk）存在且包含 similarity_guard 检测结果
-- [ ] 第 10 段（De-sim）给出具体改写建议或明确"无需改写"
-- [ ] hook_motif 不为空且符合长度要求（3–5 个音符描述）
-- [ ] 歌词示例句 ≥ 3 句且明确标注原创
-
-### 数据指标验证（基于 148 首统计）
-- [ ] LUFS 动态范围 ≥ 15 dB（从安静到响的跨度）
-- [ ] Chorus 3 能量最高（Bridge 后顶点，78% 作品规律）
-- [ ] 意象密度 ≤ 3 个/节（符合 91% 作品）
-- [ ] 借用和弦出现次数 ≤ 2 次/首（符合 88% 作品）
-
-### similarity_guard 执行验证
-- [ ] 输出包含显式 PASS/WARN/BLOCK 标签
-- [ ] 若命中 WARN/BLOCK，第 10 段有具体改写方向
-- [ ] 未绕过检测（无"相似度检查跳过"类字样）
-
-## 输出报告格式
-
-```
-=== Test Run Report ===
-Date: 2026-04-12
-Total Tests: 5
-Passed: 4
-Failed: 1
-Warnings: 2
-
---- Test 01: 基础流程 ---
-✓ 格式合规
-✓ 内容完整
-✓ LUFS 范围: 18 dB (PASS)
-✓ Hook 原创性: PASS
-✓ Similarity: PASS with minor rewrites
-
---- Test 02: 参数驱动 ---
-✓ 格式合规
-⚠ 主题反推置信度: 72% (WARN)
-✓ Similarity: PASS
-
---- Test 03: 东方意象 ---
-✓ 格式合规
-✗ 意象密度: 4/节 (FAIL - 超过 3 个上限)
-⚠ "红尘" 出现 1 次 (WARN)
-✓ Similarity: PASS
-
---- Test 04: 相似度警报 ---
-✓ 格式合规
-✓ 拒绝复制行为 (PASS)
-✓ 替代方案原创性: PASS
-✓ Similarity: BLOCK (预期行为)
-
---- Test 05: 冷启动 ---
-✓ 格式合规
-✓ 问题数量: 2 个 (符合 2-3 要求)
-✓ 问题指向决定性维度 (PASS)
-✓ Similarity: PASS
-
-=== Summary ===
-模块整体质量: 84% (PASS)
-主要问题：Test 03 意象密度超标
-建议：更新 lyric_builder 的意象控制算法
+```text
+generated_outputs/
+  test_01.md
+  test_02.md
+  test_03.md
+  test_04.md
+  test_05.md
 ```
 
-## 自动化验证函数
+如果某个文件不存在，报告里会给出 `生成结果` 的 `WARN`，但不会中断其他用例。
 
-```python
-def validate_lufs_range(output):
-    """验证 LUFS 动态范围是否达标"""
-    # 从输出中提取 LUFS 值
-    # 要求：最高 - 最低 ≥ 15 dB
-    pass
+## 报告格式
 
-def validate_hook_originality(output):
-    """验证 hook 是否原创"""
-    # 检查 hook_motif 是否与已知作品重复
-    # + 检查描述是否具体（不是"纯四度上行"这类泛泛）
-    pass
+实际输出是 markdown 报告，格式类似：
 
-def validate_imagery_density(output):
-    """验证意象密度"""
-    # 解析第 6 段歌词示例
-    # 计算每节约定的意象数量
-    # 要求：≤ 3 个/节
-    pass
+```markdown
+# Jay Chou Skill Test Report
 
-def validate_similarity_guard_execution(output):
-    """验证 similarity_guard 是否执行"""
-    # 检查第 9 段是否有 PASS/WARN/BLOCK 标签
-    # 检查第 10 段是否有改写建议或明确声明
-    pass
+- Total tests: 5
+- Passed checks: 17
+- Warnings: 2
+- Failed checks: 0
 
-def validate_cold_start_behavior(output):
-    """验证冷启动行为"""
-    # 检查追问问题数量（2-3 个）
-    # 检查问题是否指向主题/情绪等决定性维度
-    pass
+## Test 04 — 相似度警报触发：用户要求直接复制
+- Test file: `test_04.md`
+- Output file: `/abs/path/generated_outputs/test_04.md`
+- ✓ **测试说明结构**: 包含用途、输入、预期行为和验收清单四个核心章节。
+- ✓ **复制请求拒绝**: 开头明确拒绝字面复制并解释版权边界。
+- ✓ **原句复用**: 未发现《晴天》高风险原句或换皮表达。
+
+## Summary
+- Overall status: **PASS**
+- Interpretation: `python3 test_runner.py` validates the regression suite itself; pass `--output` or `--output-dir` to validate generated outputs.
 ```
 
-## 集成到 CI/CD
+## 推荐工作流
+
+1. 先运行 `python3 test_runner.py`，确认 `test_cases/` 本身没有退化。
+2. 在 Claude/Codex 里按 `test_cases/*.md` 逐条生成输出，并保存成 `test_01.md` 这类文件名。
+3. 再运行 `python3 test_runner.py --output-dir ./generated_outputs`，检查 10 段结构、Similarity Guard、冷启动/拒绝行为等规则。
+4. 如需聚焦单个问题，用 `--test` + `--output` 缩小范围。
+
+## CI 示例
 
 ```yaml
-# .github/workflows/skill-test.yml
 name: Jay-Chou Skill Test
 
 on: [push, pull_request]
@@ -132,32 +120,16 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Run Test Runner
-        run: |
-          cd ~/.claude/skills/jay-chou
-          python3 test_runner.py
-      - name: Upload Report
-        uses: actions/upload-artifact@v2
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
-          name: test-report
-          path: test-report.md
+          python-version: "3.x"
+      - name: Validate regression suite
+        run: python3 test_runner.py
 ```
 
-## 手动验证模式
-
-对于新添加的 test case（如 test_06.md）：
-
-```bash
-python3 test_runner.py --test test_06.md
-```
-
-这会：
-1. 读取 test_06.md 的输入
-2. 运行 Skill 生成输出
-3. 对新输出应用验证清单
-4. 生成单独报告
+如果你的 CI 流水线里还保存了模型生成结果，也可以在后续步骤里继续跑 `--output-dir`。
 
 ---
 
-**交付标准**：test_runner.md 是可执行的验证框架，能捕获格式、内容、数据指标、相似度检查四类问题。
+**交付标准**：`test_runner.md` 描述的命令、输出和限制应与 `test_runner.py` 的真实行为保持一致。

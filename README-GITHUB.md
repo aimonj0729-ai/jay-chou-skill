@@ -32,6 +32,12 @@
 
 <!-- github-autopilot:updates:start -->
 
+### 2026-04-25 11:03
+
+- 修正文档中对 `test_runner.py` 的夸大描述：它现在被明确说明为“回归套件校验 + 已保存输出校验”工具，而不是自动调用 Skill 或自动跑 JSON Schema / LUFS 指标的脚本。
+- README 与 `test_runner.md` 同步补充了 `--test`、`--output`、`--output-dir` 的真实用法，以及批量校验时需要使用 `test_01.md` 这类文件命名。
+- 补充说明 `schemas/*.json` 目前是结构化集成参考，不属于 `test_runner.py` 的自动执行范围，避免 README、schema、脚本三者语义错位。
+
 ### 2026-04-23 22:20
 
 - 补上缺失的 `test_runner.py`，现在仓库可以直接校验 `test_cases/` 套件完整性，并支持对传入的生成结果做 10 段结构、Similarity Guard、冷启动规则检查。
@@ -343,11 +349,18 @@ const output = await skill.run({
 
 ### 3. 可验证输出
 
-每个生成的方案都跑 `similarity_guard`：
-- ✓ 格式合规（JSON Schema）
-- ✓ LUFS 动态范围达标（15-20 dB）
-- ✓ Hook 原创性（不与已知名作撞车）
-- ✓ 意象密度合规（≤3 个/节）
+当前仓库的验证链分成两层：
+- `similarity_guard` 是 Skill 设计里的内容自检层，负责第 9 / 10 段的风险与去相似化建议
+- `test_runner.py` 是仓库内的回归检查脚本，负责校验 `test_cases/` 结构，以及对**已保存**的 markdown 输出做规则检查
+
+`test_runner.py` 当前能直接检查的内容包括：
+- ✓ `test_cases/*.md` 是否包含用途 / 输入 / 预期行为 / 验收清单
+- ✓ 生成结果是否包含完整 10 段编号章节
+- ✓ 第 9 段是否带 `PASS` / `WARN` / `BLOCK`
+- ✓ 第 10 段是否给出明确处理方向
+- ✓ `test_01`–`test_05` 的关键场景规则，例如冷启动提问、复制请求拒绝、东方陈词黑名单
+
+`schemas/input_schema.json` 和 `schemas/output_schema.json` 仍然保留，主要用于结构化集成和人工对照；当前 `test_runner.py` 不会直接对 markdown 输出执行 JSON Schema 校验。
 
 **可集成 CI/CD**：
 ```bash
@@ -355,8 +368,12 @@ cd ~/.claude/skills/jay-chou
 python3 test_runner.py
 # 校验 test_cases/ 套件结构，并生成 test-report.md
 
+python3 test_runner.py --test test_04.md --output ./generated_outputs/test_04.md
+# 聚焦单个用例及其对应输出
+
 python3 test_runner.py --output-dir ./generated_outputs
 # 在已有生成结果文件时，继续校验 10 段结构 / Similarity Guard / 冷启动规则
+# 目录中的文件名需对应为 test_01.md、test_02.md ...
 ```
 
 ### 4. 多层次抽象架构
@@ -394,7 +411,7 @@ python3 test_runner.py --output-dir ./generated_outputs
 ### 如何贡献你的音乐知识
 
 **发现 skill 生成的方案有问题？**
-- 运行 `test_runner.py` 生成基础报告，或用 `--output-dir` 校验真实输出
+- 先运行 `test_runner.py` 校验回归套件结构，再用 `--output` 或 `--output-dir` 校验你实际保存的生成结果
 - 在 Issues 里贴报告 + 你的改进建议
 - 我们一起更新 `song_analyzer.md` 的知识根
 
