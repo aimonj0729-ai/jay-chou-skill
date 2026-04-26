@@ -32,6 +32,11 @@
 
 <!-- github-autopilot:updates:start -->
 
+### 2026-04-26 09:33
+
+- `test_runner.py` 现在会在 `--output` 指向不存在/非文件路径，或 `--output-dir` 指向不存在/非目录路径时直接报错退出，避免抛 Python traceback 或产出误导性的报告。
+- 主 README、`README-GITHUB.md` 和 `test_runner.md` 已同步补充路径要求：`--output` 需要配合单个 `--test` 和一个已存在的 markdown 文件，`--output-dir` 需要是已存在目录。
+
 ### 2026-04-25 11:03
 
 - 修正文档中对 `test_runner.py` 的夸大描述：它现在被明确说明为“回归套件校验 + 已保存输出校验”工具，而不是自动调用 Skill 或自动跑 JSON Schema / LUFS 指标的脚本。
@@ -370,10 +375,12 @@ python3 test_runner.py
 
 python3 test_runner.py --test test_04.md --output ./generated_outputs/test_04.md
 # 聚焦单个用例及其对应输出
+# --output 需要配合单个 --test，且文件必须已经存在
 
 python3 test_runner.py --output-dir ./generated_outputs
 # 在已有生成结果文件时，继续校验 10 段结构 / Similarity Guard / 冷启动规则
 # 目录中的文件名需对应为 test_01.md、test_02.md ...
+# --output-dir 必须是已存在目录；路径写错时脚本会直接报错退出
 ```
 
 ### 4. 多层次抽象架构

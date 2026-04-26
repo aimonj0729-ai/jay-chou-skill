@@ -77,11 +77,11 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--output",
-        help="Single generated markdown output to validate. Requires exactly one selected test case.",
+        help="Single generated markdown output to validate. Requires exactly one selected test case and an existing file.",
     )
     parser.add_argument(
         "--output-dir",
-        help="Directory containing generated outputs named after test case stems, e.g. test_01.md.",
+        help="Directory containing generated outputs named after test case stems, e.g. test_01.md. Must already exist.",
     )
     parser.add_argument(
         "--report-file",
@@ -94,6 +94,30 @@ def parse_args() -> argparse.Namespace:
         help="Only print the report to stdout.",
     )
     return parser.parse_args()
+
+
+def resolve_cli_paths(args: argparse.Namespace, specs: list[TestCaseSpec]) -> tuple[Path | None, Path | None]:
+    if args.output and args.output_dir:
+        raise SystemExit("Use either --output or --output-dir, not both.")
+    if args.output and len(specs) != 1:
+        raise SystemExit("--output requires exactly one selected test case.")
+
+    output_path = Path(args.output).expanduser().resolve() if args.output else None
+    output_dir = Path(args.output_dir).expanduser().resolve() if args.output_dir else None
+
+    if output_path is not None:
+        if not output_path.exists():
+            raise SystemExit(f"--output file not found: {output_path}")
+        if not output_path.is_file():
+            raise SystemExit(f"--output must point to a file: {output_path}")
+
+    if output_dir is not None:
+        if not output_dir.exists():
+            raise SystemExit(f"--output-dir directory not found: {output_dir}")
+        if not output_dir.is_dir():
+            raise SystemExit(f"--output-dir must point to a directory: {output_dir}")
+
+    return output_path, output_dir
 
 
 def load_test_case(path: Path) -> TestCaseSpec:
@@ -327,14 +351,7 @@ def build_report(results: list[EvaluationResult]) -> str:
 def main() -> int:
     args = parse_args()
     specs = resolve_test_cases(args.test)
-
-    if args.output and args.output_dir:
-        raise SystemExit("Use either --output or --output-dir, not both.")
-    if args.output and len(specs) != 1:
-        raise SystemExit("--output requires exactly one selected test case.")
-
-    output_path = Path(args.output).resolve() if args.output else None
-    output_dir = Path(args.output_dir).resolve() if args.output_dir else None
+    output_path, output_dir = resolve_cli_paths(args, specs)
     results = evaluate(specs, output_path, output_dir)
     report = build_report(results)
 

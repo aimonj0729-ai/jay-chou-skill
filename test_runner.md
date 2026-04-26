@@ -16,8 +16,8 @@
 
 如果你已经在 Claude/Codex 里手动生成并保存了 markdown 输出，可以额外传给脚本：
 
-- `--output`：校验单个 test case 对应的一份输出
-- `--output-dir`：批量校验一个目录里的输出文件
+- `--output`：校验单个 test case 对应的一份输出。必须配合单个 `--test`，并且文件必须已存在
+- `--output-dir`：批量校验一个目录里的输出文件。目录必须已存在
 
 通用检查包括：
 
@@ -55,9 +55,11 @@ python3 test_runner.py --test test_04.md
 
 # 3) 检查一个 test case + 它对应的一份已保存输出
 python3 test_runner.py --test test_04.md --output ./generated_outputs/test_04.md
+# --output 需要单个 --test，且文件必须已经存在
 
 # 4) 批量检查目录下所有已保存输出
 python3 test_runner.py --output-dir ./generated_outputs
+# --output-dir 必须是已存在目录
 
 # 5) 只打印报告，不写 test-report.md
 python3 test_runner.py --no-write-report
@@ -76,7 +78,8 @@ generated_outputs/
   test_05.md
 ```
 
-如果某个文件不存在，报告里会给出 `生成结果` 的 `WARN`，但不会中断其他用例。
+如果目录存在但某个文件不存在，报告里会给出 `生成结果` 的 `WARN`，但不会中断其他用例。  
+如果 `--output` 文件或 `--output-dir` 目录本身不存在，脚本会直接报错退出，避免 traceback 或误导性的通过报告。
 
 ## 报告格式
 

@@ -32,6 +32,23 @@
 
 <!-- github-autopilot:updates:start -->
 
+### 2026-04-26 09:35
+
+修了一处高置信度的脚本稳定性问题：`test_runner.py` 在参数路径写错时，之前要么直接抛 Python traceback，要么给出带 `WARN` 但整体 `PASS` 的误导性报告。我在 [test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:70) 加了统一的 CLI 路径校验，现在会对 `--output` 和 `--output-dir` 做存在性与类型检查，错误时直接用清晰消息退出。相关说明也同步写进了主 README 和测试说明文档：[README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:35)、[README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:384)、[test_runner.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md:17)。
+
+跑过的验证：
+- `python3 test_runner.py --no-write-report`
+- `python3 -m py_compile test_runner.py`
+- `python3 test_runner.py --test test_04.md --output ./does-not-exist.md --no-write-report`
+- `python3 test_runner.py --output-dir ./does-not-exist-dir --no-write-report`
+
+结果是正常回归仍然通过，两个错误场景现在都会返回明确的 CLI 错误，不再出现 traceback 或误导性报告。未提交，未推送。
+
+### 2026-04-26 09:33
+
+- `test_runner.py` 现在会在 `--output` 指向不存在/非文件路径，或 `--output-dir` 指向不存在/非目录路径时直接报错退出，避免抛 Python traceback 或产出误导性的报告。
+- 主 README、`README-GITHUB.md` 和 `test_runner.md` 已同步补充路径要求：`--output` 需要配合单个 `--test` 和一个已存在的 markdown 文件，`--output-dir` 需要是已存在目录。
+
 ### 2026-04-25 11:06
 
 本次只做了一项高置信度改进：修复“验证文档和真实脚本行为不一致”的问题。
@@ -384,10 +401,12 @@ python3 test_runner.py
 
 python3 test_runner.py --test test_04.md --output ./generated_outputs/test_04.md
 # 聚焦单个用例及其对应输出
+# --output 需要配合单个 --test，且文件必须已经存在
 
 python3 test_runner.py --output-dir ./generated_outputs
 # 在已有生成结果文件时，继续校验 10 段结构 / Similarity Guard / 冷启动规则
 # 目录中的文件名需对应为 test_01.md、test_02.md ...
+# --output-dir 必须是已存在目录；路径写错时脚本会直接报错退出
 ```
 
 ### 4. 多层次抽象架构
