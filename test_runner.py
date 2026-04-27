@@ -135,6 +135,20 @@ def load_test_case(path: Path) -> TestCaseSpec:
     )
 
 
+def resolve_test_case_path(raw_value: str) -> Path:
+    candidate = Path(raw_value).expanduser()
+    if not candidate.is_absolute():
+        candidate = TEST_CASES_DIR / candidate
+    candidate = candidate.resolve()
+
+    if not candidate.exists():
+        raise SystemExit(f"--test file not found: {raw_value}")
+    if not candidate.is_file():
+        raise SystemExit(f"--test must point to a file: {candidate}")
+
+    return candidate
+
+
 def resolve_test_cases(raw_tests: list[str]) -> list[TestCaseSpec]:
     if not raw_tests:
         paths = sorted(TEST_CASES_DIR.glob("test_*.md"))
@@ -142,12 +156,7 @@ def resolve_test_cases(raw_tests: list[str]) -> list[TestCaseSpec]:
 
     specs: list[TestCaseSpec] = []
     for raw_value in raw_tests:
-        candidate = Path(raw_value)
-        if not candidate.is_absolute():
-            candidate = (TEST_CASES_DIR / raw_value).resolve()
-        if not candidate.exists():
-            raise FileNotFoundError(f"Test case not found: {raw_value}")
-        specs.append(load_test_case(candidate))
+        specs.append(load_test_case(resolve_test_case_path(raw_value)))
     return specs
 
 

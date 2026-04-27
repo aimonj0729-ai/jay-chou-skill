@@ -12,6 +12,8 @@
 - 是否存在可复用的 fenced code 输入块
 - checklist 数量是否足够支撑回归
 
+如果你要只检查某个用例，可以传 `--test`。它接受 `test_04.md` 这种文件名，或一个绝对路径；路径必须存在且指向文件。
+
 ### 模式 2：校验已保存的生成结果
 
 如果你已经在 Claude/Codex 里手动生成并保存了 markdown 输出，可以额外传给脚本：
@@ -52,6 +54,7 @@ python3 test_runner.py
 
 # 2) 只检查一个 test case 文档
 python3 test_runner.py --test test_04.md
+# --test 接受文件名或绝对路径；路径写错时脚本会直接报错退出
 
 # 3) 检查一个 test case + 它对应的一份已保存输出
 python3 test_runner.py --test test_04.md --output ./generated_outputs/test_04.md
@@ -79,7 +82,7 @@ generated_outputs/
 ```
 
 如果目录存在但某个文件不存在，报告里会给出 `生成结果` 的 `WARN`，但不会中断其他用例。  
-如果 `--output` 文件或 `--output-dir` 目录本身不存在，脚本会直接报错退出，避免 traceback 或误导性的通过报告。
+如果 `--test`、`--output` 或 `--output-dir` 的路径本身不存在，脚本会直接报错退出，避免 traceback 或误导性的通过报告。
 
 ## 报告格式
 

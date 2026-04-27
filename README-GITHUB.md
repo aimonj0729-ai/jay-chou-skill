@@ -32,6 +32,11 @@
 
 <!-- github-autopilot:updates:start -->
 
+### 2026-04-27 09:34
+
+- `test_runner.py` 现在会对 `--test` 做和 `--output` / `--output-dir` 一样的路径校验：文件不存在或传到目录时，直接报清晰 CLI 错误，不再抛 `FileNotFoundError` traceback。
+- 主 README、`README-GITHUB.md` 和 `test_runner.md` 已同步补充 `--test` 的真实约束：接受 `test_04.md` 这类文件名或绝对路径，且目标必须存在并指向文件。
+
 ### 2026-04-26 09:33
 
 - `test_runner.py` 现在会在 `--output` 指向不存在/非文件路径，或 `--output-dir` 指向不存在/非目录路径时直接报错退出，避免抛 Python traceback 或产出误导性的报告。
@@ -373,6 +378,10 @@ cd ~/.claude/skills/jay-chou
 python3 test_runner.py
 # 校验 test_cases/ 套件结构，并生成 test-report.md
 
+python3 test_runner.py --test test_04.md
+# 只检查一个用例文档；--test 接受文件名或绝对路径
+# 路径写错时脚本会直接报错退出
+
 python3 test_runner.py --test test_04.md --output ./generated_outputs/test_04.md
 # 聚焦单个用例及其对应输出
 # --output 需要配合单个 --test，且文件必须已经存在
@@ -381,6 +390,7 @@ python3 test_runner.py --output-dir ./generated_outputs
 # 在已有生成结果文件时，继续校验 10 段结构 / Similarity Guard / 冷启动规则
 # 目录中的文件名需对应为 test_01.md、test_02.md ...
 # --output-dir 必须是已存在目录；路径写错时脚本会直接报错退出
+# 同样地，--test 目标文件不存在或不是文件时也会直接报错退出
 ```
 
 ### 4. 多层次抽象架构
