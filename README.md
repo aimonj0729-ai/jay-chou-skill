@@ -32,6 +32,36 @@
 
 <!-- github-autopilot:updates:start -->
 
+### 2026-04-28 16:14
+
+修了一个高置信度的 CLI 稳定性问题：`test_runner.py` 之前对 `--test`、`--output`、`--output-dir` 都做了路径校验，但 `--report-file` 还没有。父目录不存在，或把它指到目录时，会在最后写报告阶段直接抛 traceback。现在 [test_runner.py](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:123) 新增了 `resolve_report_file_path()`，并在 [test_runner.py](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:382) 写入前统一校验，同时把其余 `OSError` 也转成清晰的 CLI 退出。对应回归测试加在了 [tests/test_test_runner.py](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py:1)。
+
+README 也同步了这次变化：主 [README.md](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:35) 增加了更新记录，并在 [README.md](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:457) 补了 `--report-file` 的用法；[test_runner.md](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md:21) 和 [README-GITHUB.md](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md:35) 也做了同步说明。
+
+验证跑了：
+- `python3 test_runner.py --no-write-report`
+- `python3 -m unittest discover -s tests`
+- `python3 -m py_compile test_runner.py`
+- `python3 test_runner.py --report-file ./does-not-exist-dir/test-report.md`
+- `python3 test_runner.py --report-file .`
+
+结果是常规回归仍然通过，两个错误的 `--report-file` 场景现在都会直接返回清晰 CLI 错误。未提交，未推送。
+
+### 2026-04-28 16:18
+
+这次只做了一项高置信度改进：补上 `test_runner.py` 对 `--report-file` 的路径校验。之前如果把报告输出到不存在的父目录，或者把 `--report-file` 指到一个目录，脚本会在最后 `write_text()` 时直接抛 Python traceback。现在它会先返回清晰的 CLI 错误；其余报告写入失败也会转换成受控退出。对应回归测试已补到 `tests/test_test_runner.py`。
+
+原因很直接：`--test`、`--output`、`--output-dir` 之前都已经做了参数路径校验，唯独 `--report-file` 还留着同类缺口，属于明显的 CLI 一致性问题。现在报告输出路径的行为终于和其他参数对齐了。
+
+验证我跑了：
+- `python3 test_runner.py --no-write-report`
+- `python3 -m unittest discover -s tests`
+- `python3 -m py_compile test_runner.py`
+- `python3 test_runner.py --report-file ./does-not-exist-dir/test-report.md`
+- `python3 test_runner.py --report-file .`
+
+结果是正常回归仍然通过，两个错误的 `--report-file` 场景现在都会直接返回清晰 CLI 错误，不再抛 traceback。未提交，未推送。
+
 ### 2026-04-27 09:36
 
 这次只做了一项高置信度改进：修复 `test_runner.py` 在 `--test` 传错文件名时会直接抛 `FileNotFoundError` traceback 的问题。现在它和 `--output` / `--output-dir` 一样，会先做统一的路径与类型校验，错误时直接返回清晰的 CLI 消息。实现见 [test_runner.py](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:138>)。我也把这次修复同步写进了主 README 的更新记录和验证说明 [README.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:35>)、[README.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:408>)，并更新了测试说明 [test_runner.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md:15>)。
@@ -438,6 +468,10 @@ python3 test_runner.py --output-dir ./generated_outputs
 # 目录中的文件名需对应为 test_01.md、test_02.md ...
 # --output-dir 必须是已存在目录；路径写错时脚本会直接报错退出
 # 同样地，--test 目标文件不存在或不是文件时也会直接报错退出
+
+python3 test_runner.py --report-file ./reports/jay-chou-test-report.md
+# 自定义报告输出位置
+# --report-file 的父目录必须已存在；如果路径指向目录或父目录不存在，脚本会直接报错退出
 ```
 
 ### 4. 多层次抽象架构

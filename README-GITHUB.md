@@ -32,6 +32,11 @@
 
 <!-- github-autopilot:updates:start -->
 
+### 2026-04-28 16:18
+
+- `test_runner.py` 现在会对 `--report-file` 做和 `--test` / `--output` / `--output-dir` 一样的路径校验：父目录不存在或目标是目录时，直接报清晰 CLI 错误，不再在写报告阶段抛 traceback。
+- 新增 `tests/test_test_runner.py` 覆盖这一回归点，并同步更新主 README、`README-GITHUB.md` 和 `test_runner.md` 的用法说明。
+
 ### 2026-04-27 09:34
 
 - `test_runner.py` 现在会对 `--test` 做和 `--output` / `--output-dir` 一样的路径校验：文件不存在或传到目录时，直接报清晰 CLI 错误，不再抛 `FileNotFoundError` traceback。
@@ -391,6 +396,10 @@ python3 test_runner.py --output-dir ./generated_outputs
 # 目录中的文件名需对应为 test_01.md、test_02.md ...
 # --output-dir 必须是已存在目录；路径写错时脚本会直接报错退出
 # 同样地，--test 目标文件不存在或不是文件时也会直接报错退出
+
+python3 test_runner.py --report-file ./reports/jay-chou-test-report.md
+# 自定义报告输出位置
+# --report-file 的父目录必须已存在；如果路径指向目录或父目录不存在，脚本会直接报错退出
 ```
 
 ### 4. 多层次抽象架构

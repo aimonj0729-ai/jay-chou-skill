@@ -20,6 +20,7 @@
 
 - `--output`：校验单个 test case 对应的一份输出。必须配合单个 `--test`，并且文件必须已存在
 - `--output-dir`：批量校验一个目录里的输出文件。目录必须已存在
+- `--report-file`：自定义 markdown 报告输出位置。父目录必须已存在，目标不能是目录
 
 通用检查包括：
 
@@ -64,7 +65,11 @@ python3 test_runner.py --test test_04.md --output ./generated_outputs/test_04.md
 python3 test_runner.py --output-dir ./generated_outputs
 # --output-dir 必须是已存在目录
 
-# 5) 只打印报告，不写 test-report.md
+# 5) 自定义报告文件位置
+python3 test_runner.py --report-file ./reports/jay-chou-test-report.md
+# --report-file 的父目录必须已存在；路径指向目录时也会直接报错退出
+
+# 6) 只打印报告，不写 test-report.md
 python3 test_runner.py --no-write-report
 ```
 
@@ -82,7 +87,7 @@ generated_outputs/
 ```
 
 如果目录存在但某个文件不存在，报告里会给出 `生成结果` 的 `WARN`，但不会中断其他用例。  
-如果 `--test`、`--output` 或 `--output-dir` 的路径本身不存在，脚本会直接报错退出，避免 traceback 或误导性的通过报告。
+如果 `--test`、`--output`、`--output-dir` 或 `--report-file` 的路径本身不合法，脚本会直接报错退出，避免 traceback 或误导性的通过报告。
 
 ## 报告格式
 

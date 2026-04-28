@@ -86,7 +86,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--report-file",
         default=str(DEFAULT_REPORT_PATH),
-        help="Where to write the markdown report. Default: ./test-report.md",
+        help="Where to write the markdown report. Parent directory must already exist. Default: ./test-report.md",
     )
     parser.add_argument(
         "--no-write-report",
@@ -118,6 +118,21 @@ def resolve_cli_paths(args: argparse.Namespace, specs: list[TestCaseSpec]) -> tu
             raise SystemExit(f"--output-dir must point to a directory: {output_dir}")
 
     return output_path, output_dir
+
+
+def resolve_report_file_path(raw_value: str) -> Path:
+    report_path = Path(raw_value).expanduser().resolve()
+
+    if report_path.exists() and report_path.is_dir():
+        raise SystemExit(f"--report-file must point to a file: {report_path}")
+
+    parent_dir = report_path.parent
+    if not parent_dir.exists():
+        raise SystemExit(f"--report-file parent directory not found: {parent_dir}")
+    if not parent_dir.is_dir():
+        raise SystemExit(f"--report-file parent must be a directory: {parent_dir}")
+
+    return report_path
 
 
 def load_test_case(path: Path) -> TestCaseSpec:
@@ -365,8 +380,11 @@ def main() -> int:
     report = build_report(results)
 
     if not args.no_write_report:
-        report_path = Path(args.report_file).expanduser().resolve()
-        report_path.write_text(report, encoding="utf-8")
+        report_path = resolve_report_file_path(args.report_file)
+        try:
+            report_path.write_text(report, encoding="utf-8")
+        except OSError as exc:
+            raise SystemExit(f"Unable to write report file: {report_path} ({exc.strerror or exc})") from exc
 
     print(report)
     return 1 if any(result.failed for result in results) else 0
