@@ -32,6 +32,29 @@
 
 <!-- github-autopilot:updates:start -->
 
+### 2026-04-29 09:37
+
+**改动**
+
+修了一个高置信度的测试器逻辑问题：`test_runner.py` 之前会先无条件跑通用的 10 段校验，导致 `test_02` 的“1–2 个澄清问题”响应和 `test_05` 的首轮冷启动提问被误判为失败。现在 [test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:251) 会按用例分支决定是否执行通用 10 段检查，并在 [test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:259) 把 `test_02` 的“默认主题说明”分支也收紧到和用例文档一致。对应回归测试加在了 [tests/test_test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py:50)。
+
+README 和测试说明也同步了这次修复，让用户能直接看到最新行为：[README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:35)、[README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:448)、[test_runner.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md:25)、[README-GITHUB.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md:35)。
+
+**验证**
+
+运行了这些命令：
+
+- `python3 test_runner.py --no-write-report`
+- `python3 -m unittest discover -s tests`
+- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
+
+另外手工回归了两种最小输入，确认 `test_02` 和 `test_05` 的提问型合法输出现在分别得到 `PASS`，不再附带 10 段相关误判。未提交，未推送。
+
+### 2026-04-29 09:33
+
+- 修复 `test_runner.py` 的冷启动分支校验：`test_02` 的“1–2 个澄清问题”响应，以及 `test_05` 的首轮冷启动提问，不再先被通用的 10 段 / Similarity Guard / 去相似化检查误判为失败。
+- 新增 `tests/test_test_runner.py` 回归测试覆盖这两个场景，并同步更新主 README、`README-GITHUB.md` 和 `test_runner.md` 的测试说明。
+
 ### 2026-04-28 16:14
 
 修了一个高置信度的 CLI 稳定性问题：`test_runner.py` 之前对 `--test`、`--output`、`--output-dir` 都做了路径校验，但 `--report-file` 还没有。父目录不存在，或把它指到目录时，会在最后写报告阶段直接抛 traceback。现在 [test_runner.py](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:123) 新增了 `resolve_report_file_path()`，并在 [test_runner.py](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:382) 写入前统一校验，同时把其余 `OSError` 也转成清晰的 CLI 退出。对应回归测试加在了 [tests/test_test_runner.py](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py:1)。
@@ -442,9 +465,9 @@ const output = await skill.run({
 
 `test_runner.py` 当前能直接检查的内容包括：
 - ✓ `test_cases/*.md` 是否包含用途 / 输入 / 预期行为 / 验收清单
-- ✓ 生成结果是否包含完整 10 段编号章节
-- ✓ 第 9 段是否带 `PASS` / `WARN` / `BLOCK`
-- ✓ 第 10 段是否给出明确处理方向
+- ✓ 在预期应输出完整方案的场景里，生成结果是否包含完整 10 段编号章节
+- ✓ 在预期应输出完整方案的场景里，第 9 段是否带 `PASS` / `WARN` / `BLOCK`
+- ✓ 在预期应输出完整方案的场景里，第 10 段是否给出明确处理方向
 - ✓ `test_01`–`test_05` 的关键场景规则，例如冷启动提问、复制请求拒绝、东方陈词黑名单
 
 `schemas/input_schema.json` 和 `schemas/output_schema.json` 仍然保留，主要用于结构化集成和人工对照；当前 `test_runner.py` 不会直接对 markdown 输出执行 JSON Schema 校验。
@@ -465,6 +488,7 @@ python3 test_runner.py --test test_04.md --output ./generated_outputs/test_04.md
 
 python3 test_runner.py --output-dir ./generated_outputs
 # 在已有生成结果文件时，继续校验 10 段结构 / Similarity Guard / 冷启动规则
+# 对 test_02 的澄清问题分支和 test_05 的首轮响应，脚本会改走冷启动规则，不强制要求 10 段
 # 目录中的文件名需对应为 test_01.md、test_02.md ...
 # --output-dir 必须是已存在目录；路径写错时脚本会直接报错退出
 # 同样地，--test 目标文件不存在或不是文件时也会直接报错退出

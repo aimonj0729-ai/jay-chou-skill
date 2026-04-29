@@ -32,6 +32,11 @@
 
 <!-- github-autopilot:updates:start -->
 
+### 2026-04-29 09:33
+
+- 修复 `test_runner.py` 的冷启动分支校验：`test_02` 的“1–2 个澄清问题”响应，以及 `test_05` 的首轮冷启动提问，不再先被通用的 10 段 / Similarity Guard / 去相似化检查误判为失败。
+- 新增 `tests/test_test_runner.py` 回归测试覆盖这两个场景，并同步更新主 README、`README-GITHUB.md` 和 `test_runner.md` 的测试说明。
+
 ### 2026-04-28 16:18
 
 - `test_runner.py` 现在会对 `--report-file` 做和 `--test` / `--output` / `--output-dir` 一样的路径校验：父目录不存在或目标是目录时，直接报清晰 CLI 错误，不再在写报告阶段抛 traceback。
@@ -370,9 +375,9 @@ const output = await skill.run({
 
 `test_runner.py` 当前能直接检查的内容包括：
 - ✓ `test_cases/*.md` 是否包含用途 / 输入 / 预期行为 / 验收清单
-- ✓ 生成结果是否包含完整 10 段编号章节
-- ✓ 第 9 段是否带 `PASS` / `WARN` / `BLOCK`
-- ✓ 第 10 段是否给出明确处理方向
+- ✓ 在预期应输出完整方案的场景里，生成结果是否包含完整 10 段编号章节
+- ✓ 在预期应输出完整方案的场景里，第 9 段是否带 `PASS` / `WARN` / `BLOCK`
+- ✓ 在预期应输出完整方案的场景里，第 10 段是否给出明确处理方向
 - ✓ `test_01`–`test_05` 的关键场景规则，例如冷启动提问、复制请求拒绝、东方陈词黑名单
 
 `schemas/input_schema.json` 和 `schemas/output_schema.json` 仍然保留，主要用于结构化集成和人工对照；当前 `test_runner.py` 不会直接对 markdown 输出执行 JSON Schema 校验。
@@ -393,6 +398,7 @@ python3 test_runner.py --test test_04.md --output ./generated_outputs/test_04.md
 
 python3 test_runner.py --output-dir ./generated_outputs
 # 在已有生成结果文件时，继续校验 10 段结构 / Similarity Guard / 冷启动规则
+# 对 test_02 的澄清问题分支和 test_05 的首轮响应，脚本会改走冷启动规则，不强制要求 10 段
 # 目录中的文件名需对应为 test_01.md、test_02.md ...
 # --output-dir 必须是已存在目录；路径写错时脚本会直接报错退出
 # 同样地，--test 目标文件不存在或不是文件时也会直接报错退出

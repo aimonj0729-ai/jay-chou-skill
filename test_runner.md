@@ -22,15 +22,18 @@
 - `--output-dir`：批量校验一个目录里的输出文件。目录必须已存在
 - `--report-file`：自定义 markdown 报告输出位置。父目录必须已存在，目标不能是目录
 
-通用检查包括：
+通用检查包括（仅适用于**预期应输出完整 10 段方案**的场景）：
 
 - 10 段编号章节是否完整
 - 第 9 段是否包含 `PASS` / `WARN` / `BLOCK`
 - 第 10 段是否给出明确的去相似化建议
 
+`test_02` 的“先问 1–2 个澄清问题”分支，以及 `test_05` 的首轮冷启动提问，不会再被误判成“缺少 10 段”；这两类输出会直接走各自的场景化检查。
+
 针对 `test_01` 到 `test_05`，脚本还会做少量场景化检查，例如：
 
 - `test_01`：歌词示例句数量、Hook 描述粒度、是否显式出现 `C3`
+- `test_02`：是走澄清问题分支，还是走“默认主题说明 + 完整 10 段”分支
 - `test_03`：东方万能词黑名单
 - `test_04`：复制请求是否被拒绝、是否出现高风险原句
 - `test_05`：第一次响应是否保持冷启动提问而不是直接出 10 段
@@ -64,6 +67,7 @@ python3 test_runner.py --test test_04.md --output ./generated_outputs/test_04.md
 # 4) 批量检查目录下所有已保存输出
 python3 test_runner.py --output-dir ./generated_outputs
 # --output-dir 必须是已存在目录
+# 如果目录里的 `test_02.md` 是澄清问题响应，或 `test_05.md` 是首轮冷启动提问，脚本会按对应规则校验，不强制要求 10 段
 
 # 5) 自定义报告文件位置
 python3 test_runner.py --report-file ./reports/jay-chou-test-report.md

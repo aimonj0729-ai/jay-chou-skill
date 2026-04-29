@@ -248,10 +248,18 @@ def validate_generic_output(text: str) -> list[CheckResult]:
     return checks
 
 
+def should_run_generic_output_checks(spec: TestCaseSpec, sections: dict[int, str]) -> bool:
+    if spec.slug == "test_05":
+        return False
+    if spec.slug == "test_02":
+        return bool(sections)
+    return True
+
+
 def validate_output_for_test(spec: TestCaseSpec, output_path: Path) -> list[CheckResult]:
     text = output_path.read_text(encoding="utf-8")
-    checks = validate_generic_output(text)
     sections = parse_numbered_sections(text)
+    checks = validate_generic_output(text) if should_run_generic_output_checks(spec, sections) else []
 
     if spec.slug == "test_01":
         section_6 = sections.get(6, "")
@@ -273,10 +281,16 @@ def validate_output_for_test(spec: TestCaseSpec, output_path: Path) -> list[Chec
 
     elif spec.slug == "test_02":
         question_count = count_questions(text)
-        if 1 <= question_count <= 2:
+        has_default_theme_note = contains_any(text, ("默认", "已为你默认", "如果不对请指定"))
+        if sections:
+            if has_default_theme_note:
+                checks.append(CheckResult("PASS", "默认主题说明", "完整方案包含默认主题说明或可回退提示。"))
+            else:
+                checks.append(CheckResult("WARN", "默认主题说明", "输出给了完整方案，但没有明确说明默认主题选择。"))
+        elif 1 <= question_count <= 2:
             checks.append(CheckResult("PASS", "冷启动澄清", f"检测到 {question_count} 个澄清问题。"))
-        elif contains_any(text, ("默认", "已为你默认", "如果不对请指定")):
-            checks.append(CheckResult("PASS", "默认主题说明", "输出说明了默认主题选择或可回退方式。"))
+        elif has_default_theme_note:
+            checks.append(CheckResult("WARN", "默认主题说明", "输出提到默认主题，但未给出完整 10 段方案，建议人工复核。"))
         else:
             checks.append(CheckResult("WARN", "冷启动澄清", "没有明显澄清问题或默认主题说明，建议人工复核。"))
 
