@@ -32,6 +32,26 @@
 
 <!-- github-autopilot:updates:start -->
 
+### 2026-04-30 09:52
+
+这次只做了一件高置信度改进：把仓库主打的 v1.1 能力“词人人格 + 跨风格融合”补进了回归链。之前回归只覆盖 `test_01`–`test_05`，但 README 和 Skill 已经把这两个功能当成主卖点，存在明显测试缺口。我新增了 [test_cases/test_06.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_cases/test_06.md)，并扩展了 [test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py) 去检查 `50:50` 融合比例、`[JC]/[F]/[MIX]` 来源标记和 `融合说明`；对应单测补在了 [tests/test_test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py)。主 README 以及测试说明 [README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md)、[README-GITHUB.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md)、[test_runner.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md) 也同步更新了这次变化。
+
+我没有改 Skill 生成逻辑本身，因为当前最适合安全自动落地的真实问题就是“功能已宣传，但缺少可执行回归覆盖”。这样改动小、风险低，而且能直接提升后续维护的稳定性。
+
+验证跑了这些：
+- `python3 test_runner.py --no-write-report`
+- `python3 test_runner.py --test test_06.md --no-write-report`
+- `python3 -m unittest discover -s tests`
+- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
+
+结果是回归套件现在为 6 个用例、18 个检查全部通过；单测 7 个全部通过。未提交，未推送。
+
+### 2026-04-30 10:05
+
+- 为 v1.1 主功能补上新的回归场景 `test_cases/test_06.md`，覆盖“词人人格 + 跨风格融合”联动，不再只测基础 10 段、冷启动和拒绝分支。
+- `test_runner.py` 现在会对这类输出额外检查：是否明确写出 `50:50` 融合比例、是否出现 `[JC]` / `[F]` / `[MIX]` 来源标记、是否补了 `融合说明`。
+- `tests/test_test_runner.py` 新增回归测试，`test_runner.md` 与主 README 也同步补充了 `test_06` 的说明，方便直接验证 v1.1 特性有没有退化。
+
 ### 2026-04-29 09:37
 
 **改动**
@@ -468,7 +488,7 @@ const output = await skill.run({
 - ✓ 在预期应输出完整方案的场景里，生成结果是否包含完整 10 段编号章节
 - ✓ 在预期应输出完整方案的场景里，第 9 段是否带 `PASS` / `WARN` / `BLOCK`
 - ✓ 在预期应输出完整方案的场景里，第 10 段是否给出明确处理方向
-- ✓ `test_01`–`test_05` 的关键场景规则，例如冷启动提问、复制请求拒绝、东方陈词黑名单
+- ✓ `test_01`–`test_06` 的关键场景规则，例如冷启动提问、复制请求拒绝、东方陈词黑名单，以及 v1.1 的词人人格 / 融合标记检查
 
 `schemas/input_schema.json` 和 `schemas/output_schema.json` 仍然保留，主要用于结构化集成和人工对照；当前 `test_runner.py` 不会直接对 markdown 输出执行 JSON Schema 校验。
 
@@ -487,8 +507,9 @@ python3 test_runner.py --test test_04.md --output ./generated_outputs/test_04.md
 # --output 需要配合单个 --test，且文件必须已经存在
 
 python3 test_runner.py --output-dir ./generated_outputs
-# 在已有生成结果文件时，继续校验 10 段结构 / Similarity Guard / 冷启动规则
+# 在已有生成结果文件时，继续校验 10 段结构 / Similarity Guard / 冷启动规则 / v1.1 融合标记
 # 对 test_02 的澄清问题分支和 test_05 的首轮响应，脚本会改走冷启动规则，不强制要求 10 段
+# `test_06.md` 还会额外检查融合比例、来源标记和融合说明
 # 目录中的文件名需对应为 test_01.md、test_02.md ...
 # --output-dir 必须是已存在目录；路径写错时脚本会直接报错退出
 # 同样地，--test 目标文件不存在或不是文件时也会直接报错退出

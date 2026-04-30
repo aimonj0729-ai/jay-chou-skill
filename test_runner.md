@@ -30,13 +30,14 @@
 
 `test_02` 的“先问 1–2 个澄清问题”分支，以及 `test_05` 的首轮冷启动提问，不会再被误判成“缺少 10 段”；这两类输出会直接走各自的场景化检查。
 
-针对 `test_01` 到 `test_05`，脚本还会做少量场景化检查，例如：
+针对 `test_01` 到 `test_06`，脚本还会做少量场景化检查，例如：
 
 - `test_01`：歌词示例句数量、Hook 描述粒度、是否显式出现 `C3`
 - `test_02`：是走澄清问题分支，还是走“默认主题说明 + 完整 10 段”分支
 - `test_03`：东方万能词黑名单
 - `test_04`：复制请求是否被拒绝、是否出现高风险原句
 - `test_05`：第一次响应是否保持冷启动提问而不是直接出 10 段
+- `test_06`：词人人格提示、`50:50` 融合比例、`[JC]/[F]/[MIX]` 来源标记、`融合说明`
 
 ## 它不会做什么
 
@@ -88,6 +89,7 @@ generated_outputs/
   test_03.md
   test_04.md
   test_05.md
+  test_06.md
 ```
 
 如果目录存在但某个文件不存在，报告里会给出 `生成结果` 的 `WARN`，但不会中断其他用例。  
@@ -100,7 +102,7 @@ generated_outputs/
 ```markdown
 # Jay Chou Skill Test Report
 
-- Total tests: 5
+- Total tests: 6
 - Passed checks: 17
 - Warnings: 2
 - Failed checks: 0
@@ -121,7 +123,7 @@ generated_outputs/
 
 1. 先运行 `python3 test_runner.py`，确认 `test_cases/` 本身没有退化。
 2. 在 Claude/Codex 里按 `test_cases/*.md` 逐条生成输出，并保存成 `test_01.md` 这类文件名。
-3. 再运行 `python3 test_runner.py --output-dir ./generated_outputs`，检查 10 段结构、Similarity Guard、冷启动/拒绝行为等规则。
+3. 再运行 `python3 test_runner.py --output-dir ./generated_outputs`，检查 10 段结构、Similarity Guard、冷启动/拒绝行为，以及 v1.1 的词人人格 + 融合标记规则。
 4. 如需聚焦单个问题，用 `--test` + `--output` 缩小范围。
 
 ## CI 示例

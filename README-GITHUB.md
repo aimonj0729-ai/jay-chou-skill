@@ -32,6 +32,12 @@
 
 <!-- github-autopilot:updates:start -->
 
+### 2026-04-30 10:05
+
+- 新增 `test_cases/test_06.md`，把 v1.1 的“词人人格 + 跨风格融合”联动场景纳入回归套件。
+- `test_runner.py` 现在会额外检查 `50:50` 融合比例、`[JC]` / `[F]` / `[MIX]` 来源标记，以及 `融合说明` / `Fusion Notes`。
+- `tests/test_test_runner.py`、主 README 和 `test_runner.md` 已同步补上这条回归说明。
+
 ### 2026-04-29 09:33
 
 - 修复 `test_runner.py` 的冷启动分支校验：`test_02` 的“1–2 个澄清问题”响应，以及 `test_05` 的首轮冷启动提问，不再先被通用的 10 段 / Similarity Guard / 去相似化检查误判为失败。
@@ -378,7 +384,7 @@ const output = await skill.run({
 - ✓ 在预期应输出完整方案的场景里，生成结果是否包含完整 10 段编号章节
 - ✓ 在预期应输出完整方案的场景里，第 9 段是否带 `PASS` / `WARN` / `BLOCK`
 - ✓ 在预期应输出完整方案的场景里，第 10 段是否给出明确处理方向
-- ✓ `test_01`–`test_05` 的关键场景规则，例如冷启动提问、复制请求拒绝、东方陈词黑名单
+- ✓ `test_01`–`test_06` 的关键场景规则，例如冷启动提问、复制请求拒绝、东方陈词黑名单，以及 v1.1 的词人人格 / 融合标记检查
 
 `schemas/input_schema.json` 和 `schemas/output_schema.json` 仍然保留，主要用于结构化集成和人工对照；当前 `test_runner.py` 不会直接对 markdown 输出执行 JSON Schema 校验。
 
@@ -397,8 +403,9 @@ python3 test_runner.py --test test_04.md --output ./generated_outputs/test_04.md
 # --output 需要配合单个 --test，且文件必须已经存在
 
 python3 test_runner.py --output-dir ./generated_outputs
-# 在已有生成结果文件时，继续校验 10 段结构 / Similarity Guard / 冷启动规则
+# 在已有生成结果文件时，继续校验 10 段结构 / Similarity Guard / 冷启动规则 / v1.1 融合标记
 # 对 test_02 的澄清问题分支和 test_05 的首轮响应，脚本会改走冷启动规则，不强制要求 10 段
+# `test_06.md` 还会额外检查融合比例、来源标记和融合说明
 # 目录中的文件名需对应为 test_01.md、test_02.md ...
 # --output-dir 必须是已存在目录；路径写错时脚本会直接报错退出
 # 同样地，--test 目标文件不存在或不是文件时也会直接报错退出
