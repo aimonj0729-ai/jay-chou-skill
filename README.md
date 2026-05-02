@@ -32,6 +32,30 @@
 
 <!-- github-autopilot:updates:start -->
 
+### 2026-05-02 13:22
+
+这次只做了一件小而完整的改进：补上了 v1.1 主功能的端到端完整示例。之前仓库已经在 [SKILL.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/SKILL.md:164>)、[README.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:382>) 和 `test_06` 里强调“词人人格 + 跨风格融合”，但 [examples.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/examples.md:1>) 还缺一份可直接照抄的完整案例。我在 [examples.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/examples.md:388>) 新增了一个完整的 Example 4，演示“方文山人格 × Electronic 50:50”，包含 `[JC]` / `[F]` / `[MIX]` 来源标记和 `Fusion Notes`，并把旧的局部优化示例顺延为 Example 5/6。相关引用也同步更新到了 [README.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:35>)、[README-GITHUB.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md:35>) 和 [SKILL.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/SKILL.md:164>)。
+
+验证跑了：
+- `python3 test_runner.py --no-write-report`
+- `python3 -m unittest discover -s tests`
+- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
+
+结果是回归套件 6 个用例全部通过，单测 7 个全部通过。未提交，未推送。
+
+### 2026-05-02
+
+这次只做了一件高置信度补强：给 [examples.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/examples.md) 补上了一份完整的 v1.1 联动示例，直接演示“方文山系词人人格 + 周杰伦 × electronic 50:50 融合 + `[JC]` / `[F]` / `[MIX]` 来源标记 + `Fusion Notes`”的端到端输出。之前 README、[SKILL.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/SKILL.md) 和 [test_cases/test_06.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_cases/test_06.md) 都已经把这组能力当成主功能，但示例文件还停留在旧的 3 个完整案例，用户缺少一份可以直接照抄的完整输入与参考产出。
+
+我同步更新了 `examples.md` 的示例结构说明、`SKILL.md` 对示例数量的引用，以及主 README / `README-GITHUB.md` 的使用说明，明确现在可以直接查看 `examples.md` 的 Example 4 来触发 v1.1 能力。
+
+验证跑了这些：
+- `python3 test_runner.py --no-write-report`
+- `python3 -m unittest discover -s tests`
+- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
+
+结果是现有回归脚本和单测都仍然通过。未提交，未推送。
+
 ### 2026-04-30 09:52
 
 这次只做了一件高置信度改进：把仓库主打的 v1.1 能力“词人人格 + 跨风格融合”补进了回归链。之前回归只覆盖 `test_01`–`test_05`，但 README 和 Skill 已经把这两个功能当成主卖点，存在明显测试缺口。我新增了 [test_cases/test_06.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_cases/test_06.md)，并扩展了 [test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py) 去检查 `50:50` 融合比例、`[JC]/[F]/[MIX]` 来源标记和 `融合说明`；对应单测补在了 [tests/test_test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py)。主 README 以及测试说明 [README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md)、[README-GITHUB.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md)、[test_runner.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md) 也同步更新了这次变化。
@@ -365,6 +389,8 @@ const output = await skill.run({
 ```
 
 **支持 8 种预置风格**：Jazz / Electronic / Latin / Deep R&B / Orchestral / Folk / World / Trap
+
+完整联动示例见 `examples.md` 的 Example 4：方文山人格 × Electronic `50:50`，包含 `[JC]` / `[F]` / `[MIX]` 来源标记和 `Fusion Notes`。
 
 ---
 

@@ -161,7 +161,7 @@ origin: user
 
 **Skill 产出**：按 10 段模板给完整方案 → 跑 similarity_guard → 若命中任何陈词/相似项，自动给出去相似化改写。
 
-完整示例见 `examples.md`（Example 1–3）。
+完整示例见 `examples.md`（Example 1–4，其中 Example 4 演示 v1.1 的词人人格 + 跨风格融合联动）。
 
 ## 迭代维护
 

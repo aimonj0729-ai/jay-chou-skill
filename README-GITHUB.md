@@ -32,6 +32,11 @@
 
 <!-- github-autopilot:updates:start -->
 
+### 2026-05-02
+
+- `examples.md` 新增完整的 Example 4，演示 v1.1 的“方文山系词人人格 + 周杰伦 × electronic `50:50` 融合 + `[JC]` / `[F]` / `[MIX]` 来源标记 + `Fusion Notes`”端到端输出。
+- `SKILL.md`、主 README 和 `README-GITHUB.md` 已同步把完整示例引用更新到 Example 4，用户现在可以直接照着这份案例触发 v1.1 功能。
+
 ### 2026-04-30 10:05
 
 - 新增 `test_cases/test_06.md`，把 v1.1 的“词人人格 + 跨风格融合”联动场景纳入回归套件。
@@ -261,6 +266,8 @@ const output = await skill.run({
 ```
 
 **支持 8 种预置风格**：Jazz / Electronic / Latin / Deep R&B / Orchestral / Folk / World / Trap
+
+完整联动示例见 `examples.md` 的 Example 4：方文山人格 × Electronic `50:50`，包含 `[JC]` / `[F]` / `[MIX]` 来源标记和 `Fusion Notes`。
 
 ---
 
