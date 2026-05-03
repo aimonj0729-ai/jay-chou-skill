@@ -69,6 +69,7 @@ python3 test_runner.py --test test_04.md --output ./generated_outputs/test_04.md
 python3 test_runner.py --output-dir ./generated_outputs
 # --output-dir 必须是已存在目录
 # 如果目录里的 `test_02.md` 是澄清问题响应，或 `test_05.md` 是首轮冷启动提问，脚本会按对应规则校验，不强制要求 10 段
+# 如果某个同名路径存在但它其实是目录而不是文件，报告会给 `生成结果` 的 `WARN`，不会抛 traceback
 
 # 5) 自定义报告文件位置
 python3 test_runner.py --report-file ./reports/jay-chou-test-report.md
@@ -92,7 +93,7 @@ generated_outputs/
   test_06.md
 ```
 
-如果目录存在但某个文件不存在，报告里会给出 `生成结果` 的 `WARN`，但不会中断其他用例。  
+如果目录存在但某个文件不存在，或同名路径其实是目录而不是文件，报告里会给出 `生成结果` 的 `WARN`，但不会中断其他用例。  
 如果 `--test`、`--output`、`--output-dir` 或 `--report-file` 的路径本身不合法，脚本会直接报错退出，避免 traceback 或误导性的通过报告。
 
 ## 报告格式

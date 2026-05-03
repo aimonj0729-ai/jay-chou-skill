@@ -373,7 +373,10 @@ def evaluate(specs: list[TestCaseSpec], output_path: Path | None, output_dir: Pa
         elif output_dir is not None:
             candidate = output_dir / f"{spec.slug}.md"
             if candidate.exists():
-                matched_output = candidate
+                if candidate.is_file():
+                    matched_output = candidate
+                else:
+                    checks.append(CheckResult("WARN", "生成结果", f"匹配路径不是文件: {candidate.name}"))
             else:
                 checks.append(CheckResult("WARN", "生成结果", f"未找到匹配输出文件: {candidate.name}"))
 

@@ -160,5 +160,24 @@ class ValidateOutputForTestTests(unittest.TestCase):
         self.assertEqual(statuses["融合说明"], "FAIL")
 
 
+class EvaluateTests(unittest.TestCase):
+    def test_output_dir_directory_entry_becomes_warning_instead_of_traceback(self) -> None:
+        spec = test_runner.load_test_case(ROOT_DIR / "test_cases" / "test_01.md")
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            output_dir = Path(tmp_dir)
+            (output_dir / "test_01.md").mkdir()
+
+            results = test_runner.evaluate([spec], output_path=None, output_dir=output_dir)
+
+        self.assertEqual(len(results), 1)
+        result = results[0]
+        warning_map = {check.label: check.detail for check in result.checks if check.status == "WARN"}
+
+        self.assertIsNone(result.output_path)
+        self.assertIn("生成结果", warning_map)
+        self.assertEqual(warning_map["生成结果"], "匹配路径不是文件: test_01.md")
+
+
 if __name__ == "__main__":
     unittest.main()

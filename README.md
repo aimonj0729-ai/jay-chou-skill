@@ -32,6 +32,32 @@
 
 <!-- github-autopilot:updates:start -->
 
+### 2026-05-03 09:38
+
+本次只做了一项高置信度改进：修复了 `test_runner.py` 在 `--output-dir` 模式下的一个稳定性边界。之前如果输出目录里某个 `test_01.md` 同名路径其实是目录，脚本会在读取时直接抛 traceback；现在它会在 [test_runner.py](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:373>) 记录一条 `生成结果` 的 `WARN` 并继续处理其他用例。对应回归测试补在 [tests/test_test_runner.py](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py:163>)。README 也已同步更新到 [README.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:35>)、[README.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:549>)、[README-GITHUB.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md:35>) 和 [test_runner.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md:68>)，让这次修复和用法说明保持一致。
+
+验证已跑：
+- `python3 test_runner.py --no-write-report`
+- `python3 -m unittest discover -s tests`
+- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
+- `tmp_dir=$(mktemp -d) && mkdir "$tmp_dir/test_01.md" && python3 test_runner.py --test test_01.md --output-dir "$tmp_dir" --no-write-report`
+
+结果是回归套件 6 个用例全部通过，单测 8 个全部通过，定向场景返回 1 条预期 `WARN`、0 个失败，不再抛 traceback。未提交，未推送。
+
+### 2026-05-03
+
+这次只做了一件高置信度的小修复：补上 `test_runner.py` 在 `--output-dir` 模式下的一个脚本稳定性边界。之前如果 `generated_outputs/test_01.md` 这类路径存在、但它其实是一个目录而不是 markdown 文件，脚本会在读取时直接抛 traceback，中断整个批量校验。我在 [test_runner.py](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py) 把这个分支改成了显式类型检查：同名路径不是文件时，只记一条 `生成结果` 的 `WARN`，继续跑其他用例。
+
+这类问题很适合无人值守自动修：它是一个真实的开发体验缺口，改动面小，不影响已有回归规则，只把“目录误放到输出目录里”从崩脚本降级成清晰报告。对应回归测试已补到 [tests/test_test_runner.py](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py)，测试说明同步更新到了主 README、[README-GITHUB.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md:35>) 和 [test_runner.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md:69>)。
+
+验证跑了：
+- `python3 test_runner.py --no-write-report`
+- `python3 -m unittest discover -s tests`
+- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
+- `tmp_dir=$(mktemp -d) && mkdir "$tmp_dir/test_01.md" && python3 test_runner.py --test test_01.md --output-dir "$tmp_dir" --no-write-report`
+
+结果是回归套件 6 个用例全部通过，单测现在是 8 个全部通过，定向的 `--output-dir` 目录误传场景会产出 `WARN` 而不是 traceback。未提交，未推送。
+
 ### 2026-05-02 13:22
 
 这次只做了一件小而完整的改进：补上了 v1.1 主功能的端到端完整示例。之前仓库已经在 [SKILL.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/SKILL.md:164>)、[README.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:382>) 和 `test_06` 里强调“词人人格 + 跨风格融合”，但 [examples.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/examples.md:1>) 还缺一份可直接照抄的完整案例。我在 [examples.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/examples.md:388>) 新增了一个完整的 Example 4，演示“方文山人格 × Electronic 50:50”，包含 `[JC]` / `[F]` / `[MIX]` 来源标记和 `Fusion Notes`，并把旧的局部优化示例顺延为 Example 5/6。相关引用也同步更新到了 [README.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:35>)、[README-GITHUB.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md:35>) 和 [SKILL.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/SKILL.md:164>)。
@@ -537,6 +563,7 @@ python3 test_runner.py --output-dir ./generated_outputs
 # 对 test_02 的澄清问题分支和 test_05 的首轮响应，脚本会改走冷启动规则，不强制要求 10 段
 # `test_06.md` 还会额外检查融合比例、来源标记和融合说明
 # 目录中的文件名需对应为 test_01.md、test_02.md ...
+# 如果某个同名路径其实是目录而不是 markdown 文件，报告会给 WARN，不会抛 traceback
 # --output-dir 必须是已存在目录；路径写错时脚本会直接报错退出
 # 同样地，--test 目标文件不存在或不是文件时也会直接报错退出
 

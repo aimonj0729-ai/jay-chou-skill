@@ -32,6 +32,11 @@
 
 <!-- github-autopilot:updates:start -->
 
+### 2026-05-03
+
+- 修复 `test_runner.py` 在 `--output-dir` 模式下的一个稳定性边界：如果 `generated_outputs/test_01.md` 这类同名路径其实是目录而不是 markdown 文件，脚本现在会给出 `生成结果` 的 `WARN`，而不是在读取时抛 traceback。
+- 新增 `tests/test_test_runner.py` 回归测试覆盖这个场景，并同步更新主 README、`README-GITHUB.md` 和 `test_runner.md` 的用法说明。
+
 ### 2026-05-02
 
 - `examples.md` 新增完整的 Example 4，演示 v1.1 的“方文山系词人人格 + 周杰伦 × electronic `50:50` 融合 + `[JC]` / `[F]` / `[MIX]` 来源标记 + `Fusion Notes`”端到端输出。
@@ -414,6 +419,7 @@ python3 test_runner.py --output-dir ./generated_outputs
 # 对 test_02 的澄清问题分支和 test_05 的首轮响应，脚本会改走冷启动规则，不强制要求 10 段
 # `test_06.md` 还会额外检查融合比例、来源标记和融合说明
 # 目录中的文件名需对应为 test_01.md、test_02.md ...
+# 如果某个同名路径其实是目录而不是 markdown 文件，报告会给 WARN，不会抛 traceback
 # --output-dir 必须是已存在目录；路径写错时脚本会直接报错退出
 # 同样地，--test 目标文件不存在或不是文件时也会直接报错退出
 
