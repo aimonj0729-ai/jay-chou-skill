@@ -32,6 +32,11 @@
 
 <!-- github-autopilot:updates:start -->
 
+### 2026-05-04
+
+- 修复 `test_runner.py` 对 `test_01` “歌词示例句” 的假阳性：现在只统计第 6 段里 `示例句` / `原创示例句` 标记后的列表项，不会再把主题定位、意象库这类普通 bullet 误算成示例句。
+- 新增 `tests/test_test_runner.py` 回归测试覆盖“只有元数据 bullets”与“显式示例句列表”两个场景，并同步更新主 README、`README-GITHUB.md` 和 `test_runner.md` 的说明。
+
 ### 2026-05-03
 
 - 修复 `test_runner.py` 在 `--output-dir` 模式下的一个稳定性边界：如果 `generated_outputs/test_01.md` 这类同名路径其实是目录而不是 markdown 文件，脚本现在会给出 `生成结果` 的 `WARN`，而不是在读取时抛 traceback。
@@ -396,7 +401,7 @@ const output = await skill.run({
 - ✓ 在预期应输出完整方案的场景里，生成结果是否包含完整 10 段编号章节
 - ✓ 在预期应输出完整方案的场景里，第 9 段是否带 `PASS` / `WARN` / `BLOCK`
 - ✓ 在预期应输出完整方案的场景里，第 10 段是否给出明确处理方向
-- ✓ `test_01`–`test_06` 的关键场景规则，例如冷启动提问、复制请求拒绝、东方陈词黑名单，以及 v1.1 的词人人格 / 融合标记检查
+- ✓ `test_01`–`test_06` 的关键场景规则，例如 `test_01` 只统计显式 `示例句` 列表项、冷启动提问、复制请求拒绝、东方陈词黑名单，以及 v1.1 的词人人格 / 融合标记检查
 
 `schemas/input_schema.json` 和 `schemas/output_schema.json` 仍然保留，主要用于结构化集成和人工对照；当前 `test_runner.py` 不会直接对 markdown 输出执行 JSON Schema 校验。
 

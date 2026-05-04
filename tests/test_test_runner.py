@@ -80,6 +80,45 @@ class ValidateOutputForTestTests(unittest.TestCase):
         output_path.write_text(body, encoding="utf-8")
         return output_path
 
+    def test_test_01_metadata_bullets_do_not_count_as_lyric_sample_lines(self) -> None:
+        spec = test_runner.load_test_case(ROOT_DIR / "test_cases" / "test_01.md")
+        output_path = self.write_output(
+            build_full_output(
+                section_6=(
+                    "- 主题定位：毕业前夜的告别。\n"
+                    "- 叙事视角：第一人称。\n"
+                    "- 意象库：风扇、抽屉、门牌。\n"
+                    "- 押韵策略：副歌开口韵。"
+                ),
+                section_7="Piano 为主，副歌加入 Strings 和鼓组。",
+            )
+        )
+
+        checks = test_runner.validate_output_for_test(spec, output_path)
+        statuses = {check.label: check.status for check in checks}
+
+        self.assertEqual(statuses["歌词示例句"], "WARN")
+
+    def test_test_01_explicit_lyric_sample_block_passes(self) -> None:
+        spec = test_runner.load_test_case(ROOT_DIR / "test_cases" / "test_01.md")
+        output_path = self.write_output(
+            build_full_output(
+                section_6=(
+                    "- 主题定位：毕业前夜的告别。\n"
+                    "- **原创示例句**（3 条）：\n"
+                    "1. 风扇在头顶慢慢数完最后一圈。\n"
+                    "2. 抽屉里那张票根把晚自习折成两半。\n"
+                    "3. 门牌旁的白灯亮到走廊都安静。"
+                ),
+                section_7="Piano 为主，副歌加入 Strings 和鼓组。",
+            )
+        )
+
+        checks = test_runner.validate_output_for_test(spec, output_path)
+        statuses = {check.label: check.status for check in checks}
+
+        self.assertEqual(statuses["歌词示例句"], "PASS")
+
     def test_test_02_clarification_only_output_skips_generic_10_section_checks(self) -> None:
         spec = test_runner.load_test_case(ROOT_DIR / "test_cases" / "test_02.md")
         output_path = self.write_output(

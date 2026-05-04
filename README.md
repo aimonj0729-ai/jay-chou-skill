@@ -32,6 +32,25 @@
 
 <!-- github-autopilot:updates:start -->
 
+### 2026-05-04 09:45
+
+修了一个高置信度的测试误判：[test_runner.py](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:196>) 和 [test_runner.py](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:271>) 现在在 `test_01` 里只统计第 6 段 `示例句` / `原创示例句` 标记后的列表项，不再把“主题定位 / 意象库 / 押韵策略”这类普通 bullet 误算成“歌词示例句”。之前这是个真实的假阳性缺口：没有真正例句的输出也可能被判通过。
+
+回归测试补在 [tests/test_test_runner.py](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py:83>)，覆盖了“只有元数据 bullets 应该 `WARN`”和“显式示例句列表应该 `PASS`”两个场景。README 和测试说明也同步了这次变化，见 [README.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:35>)、[README.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:543>)、[test_runner.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md:33>)，`README-GITHUB.md` 也做了同步。
+
+验证跑了：
+- `python3 -m unittest discover -s tests`，10 个单测全部通过
+- `python3 test_runner.py --no-write-report`，6 个回归用例、18 个检查全部通过
+- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
+- 定向构造“第 6 段只有元数据 bullets、没有示例句”的输出后，脚本现在返回 1 条预期 `WARN`、0 个失败
+
+未提交，未推送。
+
+### 2026-05-04
+
+- 修复 `test_runner.py` 对 `test_01` “歌词示例句” 的假阳性：现在只统计第 6 段里 `示例句` / `原创示例句` 标记后的列表项，不会再把主题定位、意象库这类普通 bullet 误算成示例句。
+- 新增 `tests/test_test_runner.py` 回归测试覆盖“只有元数据 bullets”与“显式示例句列表”两个场景，并同步更新主 README、`README-GITHUB.md` 和 `test_runner.md` 的说明。
+
 ### 2026-05-03 09:38
 
 本次只做了一项高置信度改进：修复了 `test_runner.py` 在 `--output-dir` 模式下的一个稳定性边界。之前如果输出目录里某个 `test_01.md` 同名路径其实是目录，脚本会在读取时直接抛 traceback；现在它会在 [test_runner.py](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:373>) 记录一条 `生成结果` 的 `WARN` 并继续处理其他用例。对应回归测试补在 [tests/test_test_runner.py](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py:163>)。README 也已同步更新到 [README.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:35>)、[README.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:549>)、[README-GITHUB.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md:35>) 和 [test_runner.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md:68>)，让这次修复和用法说明保持一致。
@@ -540,7 +559,7 @@ const output = await skill.run({
 - ✓ 在预期应输出完整方案的场景里，生成结果是否包含完整 10 段编号章节
 - ✓ 在预期应输出完整方案的场景里，第 9 段是否带 `PASS` / `WARN` / `BLOCK`
 - ✓ 在预期应输出完整方案的场景里，第 10 段是否给出明确处理方向
-- ✓ `test_01`–`test_06` 的关键场景规则，例如冷启动提问、复制请求拒绝、东方陈词黑名单，以及 v1.1 的词人人格 / 融合标记检查
+- ✓ `test_01`–`test_06` 的关键场景规则，例如 `test_01` 只统计显式 `示例句` 列表项、冷启动提问、复制请求拒绝、东方陈词黑名单，以及 v1.1 的词人人格 / 融合标记检查
 
 `schemas/input_schema.json` 和 `schemas/output_schema.json` 仍然保留，主要用于结构化集成和人工对照；当前 `test_runner.py` 不会直接对 markdown 输出执行 JSON Schema 校验。
 

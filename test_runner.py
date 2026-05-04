@@ -27,6 +27,8 @@ REQUIRED_OUTPUT_SECTIONS = tuple(range(1, 11))
 QUESTION_PATTERN = re.compile(r"[?？]")
 NUMBERED_SECTION_PATTERN = re.compile(r"^###\s+(\d+)\.\s+.+$", re.MULTILINE)
 FUSION_SOURCE_MARKER_PATTERN = re.compile(r"\[(?:JC|F|MIX)\]")
+LYRIC_SAMPLE_MARKER_PATTERN = re.compile(r"(?:原创)?示例句|sample lines", re.IGNORECASE)
+LIST_ITEM_PATTERN = re.compile(r"^\s*(?:[-*]|\d+\.)\s+")
 
 
 @dataclass(frozen=True)
@@ -191,6 +193,15 @@ def count_questions(text: str) -> int:
     return len(QUESTION_PATTERN.findall(text))
 
 
+def count_lyric_sample_lines(section_text: str) -> int:
+    marker_match = LYRIC_SAMPLE_MARKER_PATTERN.search(section_text)
+    if marker_match is None:
+        return 0
+
+    sample_block = section_text[marker_match.end():]
+    return sum(1 for line in sample_block.splitlines() if LIST_ITEM_PATTERN.match(line.strip()))
+
+
 def has_refusal_intro(text: str) -> bool:
     first_lines = "\n".join(text.splitlines()[:12])
     refusal_markers = ("不能", "无法", "不直接", "不提供", "不做字面复制", "拒绝")
@@ -265,10 +276,11 @@ def validate_output_for_test(spec: TestCaseSpec, output_path: Path) -> list[Chec
     if spec.slug == "test_01":
         section_6 = sections.get(6, "")
         section_8 = sections.get(8, "")
-        if len(re.findall(r"^- ", section_6, re.MULTILINE)) >= 3:
-            checks.append(CheckResult("PASS", "歌词示例句", "第 6 段至少包含 3 条示例句。"))
+        sample_line_count = count_lyric_sample_lines(section_6)
+        if sample_line_count >= 3:
+            checks.append(CheckResult("PASS", "歌词示例句", f"第 6 段显式给出 {sample_line_count} 条示例句。"))
         else:
-            checks.append(CheckResult("WARN", "歌词示例句", "第 6 段未明显给出 3 条示例句，建议人工复核。"))
+            checks.append(CheckResult("WARN", "歌词示例句", f"第 6 段仅检测到 {sample_line_count} 条显式示例句，建议人工复核。"))
 
         if "音区" in section_8 and contains_any(section_8, ("节奏", "切分", "锚点")):
             checks.append(CheckResult("PASS", "Hook 描述粒度", "第 8 段同时覆盖音区与节奏/锚点。"))
