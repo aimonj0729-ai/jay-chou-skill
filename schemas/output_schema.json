@@ -177,7 +177,7 @@
         "hook_similarity": { "type": "string", "enum": ["PASS", "WARN", "BLOCK"] },
         "arrangement_info": { "type": "string", "enum": ["PASS", "WARN", "BLOCK"] },
         "style_recognition": { "type": "string", "enum": ["PASS", "WARN", "BLOCK"] },
-        "overall": { "type": "string", "enum": ["PASS", "WARN_WITH_REWRITES", "BLOCK"] },
+        "overall": { "type": "string", "enum": ["PASS", "WARN", "BLOCK"] },
         "notes": { "type": "array", "items": { "type": "string" } }
       }
     },

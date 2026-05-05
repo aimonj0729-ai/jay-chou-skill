@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -70,6 +71,16 @@ class ResolveReportFilePathTests(unittest.TestCase):
                 str(context.exception),
                 f"--report-file must point to a file: {report_dir.resolve()}",
             )
+
+
+class OutputSchemaContractTests(unittest.TestCase):
+    def test_similarity_guard_overall_status_matches_documented_tri_state_labels(self) -> None:
+        schema_path = ROOT_DIR / "schemas" / "output_schema.json"
+        schema = json.loads(schema_path.read_text(encoding="utf-8"))
+
+        overall_enum = schema["properties"]["risk_check"]["properties"]["overall"]["enum"]
+
+        self.assertEqual(overall_enum, ["PASS", "WARN", "BLOCK"])
 
 
 class ValidateOutputForTestTests(unittest.TestCase):

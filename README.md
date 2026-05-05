@@ -32,6 +32,23 @@
 
 <!-- github-autopilot:updates:start -->
 
+### 2026-05-05 09:35
+
+这次只做了一项高置信度改进：修正结构化输出 schema 和仓库文档之间的真实不一致。之前 `schemas/output_schema.json` 会把 `risk_check.overall: "WARN"` 判成非法，因为它错误地要求未文档化的 `WARN_WITH_REWRITES`；但 README、`test_runner.py` 和示例一直都在用 `PASS / WARN / BLOCK`。我把这个合同统一到了 [schemas/output_schema.json](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/output_schema.json:180)，并补了一个回归测试锁定它，见 [tests/test_test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py:76)。主 README 也同步更新了本次变更记录和 JSON 用法说明，见 [README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:35)、[README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:404)、[README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:571)。
+
+验证已跑并通过：
+- `python3 -m unittest discover -s tests`
+- `python3 test_runner.py --no-write-report`
+- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
+- `python3 -c "import json, pathlib; json.loads(pathlib.Path('schemas/output_schema.json').read_text(encoding='utf-8'))"`
+
+未提交，未推送。
+
+### 2026-05-05
+
+- 修复 `schemas/output_schema.json` 的结构化输出合同不一致：`risk_check.overall` 现在与 README、`test_runner.py` 和示例保持一致，统一使用 `PASS` / `WARN` / `BLOCK`，不再要求未文档化的 `WARN_WITH_REWRITES`。
+- 新增 `tests/test_test_runner.py` 回归测试，锁定这个 schema 枚举，避免结构化 JSON 输出再次和文档 / 示例漂移。
+
 ### 2026-05-04 09:45
 
 修了一个高置信度的测试误判：[test_runner.py](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:196>) 和 [test_runner.py](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:271>) 现在在 `test_01` 里只统计第 6 段 `示例句` / `原创示例句` 标记后的列表项，不再把“主题定位 / 意象库 / 押韵策略”这类普通 bullet 误算成“歌词示例句”。之前这是个真实的假阳性缺口：没有真正例句的输出也可能被判通过。
@@ -396,6 +413,8 @@ const output = await skill.run({
 });
 ```
 
+如果切到 `output_format: 'json'`，`risk_check` 里的状态标签也和 markdown 第 9 段保持同一套枚举：`PASS` / `WARN` / `BLOCK`。融合模式下可额外返回 `fusion_notes`。
+
 ### 玩法 4：指定词人风格（词人人格模式）🆕
 
 **你说**："用方文山的笔法写一首关于被遗忘的渡口的中国风歌"
@@ -561,7 +580,7 @@ const output = await skill.run({
 - ✓ 在预期应输出完整方案的场景里，第 10 段是否给出明确处理方向
 - ✓ `test_01`–`test_06` 的关键场景规则，例如 `test_01` 只统计显式 `示例句` 列表项、冷启动提问、复制请求拒绝、东方陈词黑名单，以及 v1.1 的词人人格 / 融合标记检查
 
-`schemas/input_schema.json` 和 `schemas/output_schema.json` 仍然保留，主要用于结构化集成和人工对照；当前 `test_runner.py` 不会直接对 markdown 输出执行 JSON Schema 校验。
+`schemas/input_schema.json` 和 `schemas/output_schema.json` 仍然保留，主要用于结构化集成和人工对照；当前 `test_runner.py` 不会直接对 markdown 输出执行 JSON Schema 校验。结构化输出里的 `risk_check.overall` 也与文档中的 Similarity Guard 保持一致，统一使用 `PASS` / `WARN` / `BLOCK`。
 
 **可集成 CI/CD**：
 ```bash

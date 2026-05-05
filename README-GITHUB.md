@@ -32,6 +32,11 @@
 
 <!-- github-autopilot:updates:start -->
 
+### 2026-05-05
+
+- 修复 `schemas/output_schema.json` 的结构化输出合同不一致：`risk_check.overall` 现在与 README、`test_runner.py` 和示例保持一致，统一使用 `PASS` / `WARN` / `BLOCK`。
+- 新增 `tests/test_test_runner.py` 回归测试，锁定这个 schema 枚举，避免结构化 JSON 输出再次和文档漂移。
+
 ### 2026-05-04
 
 - 修复 `test_runner.py` 对 `test_01` “歌词示例句” 的假阳性：现在只统计第 6 段里 `示例句` / `原创示例句` 标记后的列表项，不会再把主题定位、意象库这类普通 bullet 误算成示例句。
@@ -238,6 +243,8 @@ const output = await skill.run({
 });
 ```
 
+如果切到 `output_format: 'json'`，`risk_check` 里的状态标签也和 markdown 第 9 段保持同一套枚举：`PASS` / `WARN` / `BLOCK`。融合模式下可额外返回 `fusion_notes`。
+
 ### 玩法 4：指定词人风格（词人人格模式）🆕
 
 **你说**："用方文山的笔法写一首关于被遗忘的渡口的中国风歌"
@@ -403,7 +410,7 @@ const output = await skill.run({
 - ✓ 在预期应输出完整方案的场景里，第 10 段是否给出明确处理方向
 - ✓ `test_01`–`test_06` 的关键场景规则，例如 `test_01` 只统计显式 `示例句` 列表项、冷启动提问、复制请求拒绝、东方陈词黑名单，以及 v1.1 的词人人格 / 融合标记检查
 
-`schemas/input_schema.json` 和 `schemas/output_schema.json` 仍然保留，主要用于结构化集成和人工对照；当前 `test_runner.py` 不会直接对 markdown 输出执行 JSON Schema 校验。
+`schemas/input_schema.json` 和 `schemas/output_schema.json` 仍然保留，主要用于结构化集成和人工对照；当前 `test_runner.py` 不会直接对 markdown 输出执行 JSON Schema 校验。结构化输出里的 `risk_check.overall` 也与文档中的 Similarity Guard 保持一致，统一使用 `PASS` / `WARN` / `BLOCK`。
 
 **可集成 CI/CD**：
 ```bash
