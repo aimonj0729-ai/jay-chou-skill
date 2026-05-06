@@ -1,0 +1,44 @@
+{
+  "theme": "被遗忘的渡口",
+  "emotion": {
+    "start": "克制",
+    "end": "释怀"
+  },
+  "tempo": 76,
+  "genre_tags": [
+    "中国风叙事",
+    "电影感抒情",
+    "慢板流行"
+  ],
+  "structure_preference": "chinese-narrative",
+  "instruments": [
+    "acoustic-piano",
+    "guzheng",
+    "strings",
+    "pad-warm"
+  ],
+  "vocal_range": "male-tenor",
+  "reference_mood": "像在废弃渡口里听潮汐和城市电流同时靠近",
+  "hard_constraints": {
+    "duration_sec": 248,
+    "ban_elements": [
+      "rap"
+    ],
+    "required_elements": [
+      "piano-intro",
+      "bridge-falsetto"
+    ]
+  },
+  "output_format": "json",
+  "style_weight": 80,
+  "lyricist_persona": "fang-wenshan",
+  "fusion": {
+    "style": "electronic",
+    "ratio": "50:50",
+    "focus_dimensions": [
+      "arrangement",
+      "rhythm",
+      "harmony"
+    ]
+  }
+}

@@ -1,0 +1,196 @@
+{
+  "song_concept": "一首写给被遗忘渡口的华语流行抒情歌：古典意象承担叙事，电子音色承担时间感，让潮汐与霓虹在同一首歌里共存。",
+  "emotional_arc": {
+    "anchors": [
+      "潮湿克制",
+      "记忆翻涌",
+      "副歌释放",
+      "桥段留白",
+      "尾声释怀"
+    ],
+    "curve": "克制 → 推进 → 释放 → 断开 → 再释放 → 留白。"
+  },
+  "structure": {
+    "sections": [
+      {
+        "name": "Intro",
+        "bars": 4,
+        "note": "钢琴与合成器氛围先把渡口空间打开。"
+      },
+      {
+        "name": "Verse1",
+        "bars": 8,
+        "note": "先用白描物件建立场景。"
+      },
+      {
+        "name": "PreChorus1",
+        "bars": 4,
+        "note": "节奏密度轻微抬升。"
+      },
+      {
+        "name": "Chorus1",
+        "bars": 8,
+        "note": "第一次释放，但保留空间。"
+      },
+      {
+        "name": "Verse2",
+        "bars": 8,
+        "note": "回到渡口，把记忆推深。"
+      },
+      {
+        "name": "PreChorus2",
+        "bars": 4,
+        "note": "为第二次副歌制造更明显的递进。"
+      },
+      {
+        "name": "Chorus2",
+        "bars": 8,
+        "note": "电子侧音色比第一次更明确。"
+      },
+      {
+        "name": "Bridge",
+        "bars": 8,
+        "note": "鼓退出，保留人声与长尾空间。"
+      },
+      {
+        "name": "Chorus3",
+        "bars": 8,
+        "note": "情绪最高点落在第三次副歌。"
+      },
+      {
+        "name": "Outro",
+        "bars": 8,
+        "note": "回到钢琴与潮声，保留尾韵。"
+      }
+    ]
+  },
+  "chord_direction": {
+    "key": "D minor",
+    "mode": "minor",
+    "progressions": {
+      "verse": "Dm(add9) - Bbmaj7 - Gm9 - A7sus4",
+      "pre_chorus": "Bbmaj7 - C - Am7b5 - A7",
+      "chorus": "Dm - C - Bbmaj7 - Gm9 - A7",
+      "bridge": "Gm - Bb - C - A7"
+    },
+    "color_chords": [
+      "Dm(add9)",
+      "Bbmaj7",
+      "A7sus4"
+    ],
+    "modulation": "不转调，改用副歌合成器层次和高八度和声制造抬升。"
+  },
+  "melody_direction": {
+    "verse": "主歌保持 D4-F4 的口语区，弱起进入，以二度级进为主。",
+    "pre_chorus": "Pre 从 F4 爬到 A4，节奏密度渐增，让副歌前有明显起势。",
+    "chorus": "副歌首句用长音锚定，再接 16-16-8 的切分动机，避免纯四度上行套板。",
+    "bridge": "Bridge 降到 A3-D4，保留一次假声翻高作为情绪断裂点。",
+    "hook_device": "长音锚定 + 小切分 + 真假声边缘切换。"
+  },
+  "lyric_direction": {
+    "theme": "被遗忘的渡口与没寄出的告别",
+    "perspective": "第一人称独白",
+    "timeline": "同一夜里从潮起写到灯灭",
+    "keyword_pool": [
+      "渡口",
+      "潮汐",
+      "檐角",
+      "宣纸",
+      "旧灯"
+    ],
+    "image_pool": [
+      "渡口 + 潮汐 + 旧灯",
+      "檐角 + 雨痕 + 宣纸",
+      "木船 + 票根 + 夜雾"
+    ],
+    "rhyme_strategy": "主歌用中性韵，副歌切开口韵，Bridge 收到闭口韵。",
+    "section_roles": {
+      "verse": "用物件白描把场景钉住。",
+      "pre_chorus": "把时间感和等待感推到副歌门口。",
+      "chorus": "让抽象情绪和具体意象同时出现。",
+      "bridge": "留一段近乎耳语的自白。"
+    },
+    "sample_lines": [
+      {
+        "section": "Verse",
+        "text": "渡口的旧灯把潮声照成一页没合上的信。"
+      },
+      {
+        "section": "Chorus",
+        "text": "我把檐角滴下来的夜色折进宣纸背面。"
+      },
+      {
+        "section": "Bridge",
+        "text": "木船没有开口，可绳结一直替你点头。"
+      }
+    ],
+    "lyricist_persona": "fang-wenshan"
+  },
+  "arrangement_direction": {
+    "intro": "Acoustic Piano [JC] 先走分解和弦，随后用 Synth Pad [F] 拉开潮湿空间。",
+    "verse": "主歌让 Piano [JC] 留在前景，Arpeggiator [F] 只在句尾闪一下。",
+    "pre_chorus": "Pre 叠入 Warm Pad [F] 与 Strings [MIX]，把能量慢慢抬起。",
+    "chorus": "副歌加入 Sub Bass [F]、宽立体声 Pad [F] 与和声堆叠 [JC]，形成 50:50 的主峰。",
+    "bridge": "Bridge 先撤掉鼓与 Sub Bass，只留钢琴、长尾 Pad 和一次假声翻高。",
+    "outro": "Outro 退回 Piano [JC] + 环境合成器 [F]，让尾声停在留白里。",
+    "rhythm_section": "Verse 几乎无鼓，副歌用轻电子 kick、低存在感 clap 和细 hi-hat 提供推进。",
+    "harmonic_bed": "Strings 与 Warm Pad 共同承担和声铺底，副歌比主歌更宽但不过度饱和。",
+    "atmospheric_timbres": "潮声纹理、反向混响和一声古筝泛音共同构成空间记忆点。"
+  },
+  "hook_concept": {
+    "motif_shape": "A4 长音锚定后下行，再接一个向上回弹的小切分动机。",
+    "range": "F4-C5",
+    "rhythmic_pattern": "2 拍长音 + 16-16-8 切分 + 句尾留白。",
+    "lyrical_anchor": "把“渡口还亮着”落在长音锚定上，让意象和旋律同时被记住。"
+  },
+  "risk_check": {
+    "lyric_cliche": "PASS",
+    "image_density": "PASS",
+    "melody_pattern": "WARN",
+    "structure_template": "PASS",
+    "harmony_similarity": "PASS",
+    "hook_similarity": "WARN",
+    "arrangement_info": "PASS",
+    "style_recognition": "PASS",
+    "overall": "WARN",
+    "notes": [
+      "副歌切分动机较常见，建议在第二句加节奏错位。",
+      "古典意象已保持白描，没有落入东方万能词黑名单。"
+    ]
+  },
+  "de_similarization": {
+    "required": true,
+    "actions": [
+      {
+        "target_section": "hook_concept",
+        "issue": "副歌切分组合过于常见。",
+        "rewrite": "把第二小节从 16-16-8 改成 8-16-16-8，保留记忆点但改变动机轮廓。"
+      },
+      {
+        "target_section": "arrangement_direction.chorus",
+        "issue": "电子侧信息集中在同一小节，层次略满。",
+        "rewrite": "把 Sub Bass 延后到第二次副歌进入，让第一次副歌更克制。"
+      }
+    ]
+  },
+  "fusion_notes": {
+    "fusion_style": "electronic",
+    "ratio": "50:50",
+    "fused_dimensions": [
+      "arrangement",
+      "rhythm",
+      "harmony"
+    ],
+    "preserved_dimensions": [
+      "structure",
+      "emotional arc",
+      "lyric imagery"
+    ],
+    "key_fusion_points": [
+      "结构与情绪峰值保留周杰伦式 C3 释放。",
+      "电子侧主要注入 Pad、Arpeggiator、Sub Bass 与空间处理。",
+      "歌词仍按方文山系白描走，不让电子感污染叙事语言。"
+    ],
+    "risk_notes": "避免把电子侧写成单纯的音色贴片；至少在节奏与空间设计上同时体现融合。"
+  }
+}

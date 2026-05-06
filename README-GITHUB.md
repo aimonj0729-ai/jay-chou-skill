@@ -32,6 +32,11 @@
 
 <!-- github-autopilot:updates:start -->
 
+### 2026-05-06
+
+- 新增 `schemas/input_example.json` 和 `schemas/output_example.json`，补上一对可直接复制的结构化 JSON 示例，覆盖 v1.1 的“方文山人格 + electronic `50:50` 融合”场景。
+- 新增 `tests/test_test_runner.py` smoke tests，确保这两个 example 文件可解析，并且关键字段与 `schemas/output_schema.json` 的必填顶层字段、`risk_check` tri-state、`fusion_notes` 合同保持一致。
+
 ### 2026-05-05
 
 - 修复 `schemas/output_schema.json` 的结构化输出合同不一致：`risk_check.overall` 现在与 README、`test_runner.py` 和示例保持一致，统一使用 `PASS` / `WARN` / `BLOCK`。
@@ -245,6 +250,10 @@ const output = await skill.run({
 
 如果切到 `output_format: 'json'`，`risk_check` 里的状态标签也和 markdown 第 9 段保持同一套枚举：`PASS` / `WARN` / `BLOCK`。融合模式下可额外返回 `fusion_notes`。
 
+如果你准备直接接结构化输出，仓库里现在有一对可复制的样例：
+- `schemas/input_example.json`：完整演示 JSON 请求如何表达主题、情绪、词人人格和 `fusion`
+- `schemas/output_example.json`：对应的 10 段 JSON 响应，包含 `risk_check` 与融合模式下的 `fusion_notes`
+
 ### 玩法 4：指定词人风格（词人人格模式）🆕
 
 **你说**："用方文山的笔法写一首关于被遗忘的渡口的中国风歌"
@@ -411,6 +420,7 @@ const output = await skill.run({
 - ✓ `test_01`–`test_06` 的关键场景规则，例如 `test_01` 只统计显式 `示例句` 列表项、冷启动提问、复制请求拒绝、东方陈词黑名单，以及 v1.1 的词人人格 / 融合标记检查
 
 `schemas/input_schema.json` 和 `schemas/output_schema.json` 仍然保留，主要用于结构化集成和人工对照；当前 `test_runner.py` 不会直接对 markdown 输出执行 JSON Schema 校验。结构化输出里的 `risk_check.overall` 也与文档中的 Similarity Guard 保持一致，统一使用 `PASS` / `WARN` / `BLOCK`。
+如果你需要一个现成的结构化对接起点，可以直接复制 `schemas/input_example.json` 和 `schemas/output_example.json`；对应 smoke test 已纳入 `tests/test_test_runner.py`。
 
 **可集成 CI/CD**：
 ```bash
@@ -572,7 +582,7 @@ python3 test_runner.py --report-file ./reports/jay-chou-test-report.md
 
 ---
 
-**版本**: v1.1  **最后更新**: 2026-04-13  **维护者**: Claude + 社区
+**版本**: v1.1  **最后更新**: 2026-05-06  **维护者**: Claude + 社区
 
 ---
 

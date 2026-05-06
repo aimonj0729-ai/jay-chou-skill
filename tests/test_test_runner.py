@@ -83,6 +83,30 @@ class OutputSchemaContractTests(unittest.TestCase):
         self.assertEqual(overall_enum, ["PASS", "WARN", "BLOCK"])
 
 
+class StructuredExampleFilesTests(unittest.TestCase):
+    def test_input_example_documents_json_mode_fusion_request(self) -> None:
+        example_path = ROOT_DIR / "schemas" / "input_example.json"
+        payload = json.loads(example_path.read_text(encoding="utf-8"))
+
+        self.assertEqual(payload["output_format"], "json")
+        self.assertEqual(payload["lyricist_persona"], "fang-wenshan")
+        self.assertEqual(payload["fusion"]["style"], "electronic")
+        self.assertEqual(payload["fusion"]["ratio"], "50:50")
+
+    def test_output_example_covers_required_schema_top_level_fields(self) -> None:
+        schema_path = ROOT_DIR / "schemas" / "output_schema.json"
+        schema = json.loads(schema_path.read_text(encoding="utf-8"))
+        example_path = ROOT_DIR / "schemas" / "output_example.json"
+        payload = json.loads(example_path.read_text(encoding="utf-8"))
+
+        self.assertTrue(set(schema["required"]).issubset(payload.keys()))
+        self.assertEqual(payload["lyric_direction"]["lyricist_persona"], "fang-wenshan")
+        self.assertGreaterEqual(len(payload["lyric_direction"]["sample_lines"]), 3)
+        self.assertIn(payload["risk_check"]["overall"], {"PASS", "WARN", "BLOCK"})
+        self.assertEqual(payload["fusion_notes"]["fusion_style"], "electronic")
+        self.assertEqual(payload["fusion_notes"]["ratio"], "50:50")
+
+
 class ValidateOutputForTestTests(unittest.TestCase):
     def write_output(self, body: str) -> Path:
         temp_dir = tempfile.TemporaryDirectory()

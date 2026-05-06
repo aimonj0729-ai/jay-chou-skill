@@ -32,6 +32,28 @@
 
 <!-- github-autopilot:updates:start -->
 
+### 2026-05-06 09:38
+
+这次我只做了一项小而完整的改进：补齐 JSON 模式的开箱即用示例。新增了 [schemas/input_example.json](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/input_example.json:1) 和 [schemas/output_example.json](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/output_example.json:1)，用“方文山人格 × electronic `50:50` 融合”给出一对可直接复用的结构化请求/响应样例；同时在 [tests/test_test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py:86) 加了 smoke tests，确认这两个样例可解析，且输出样例覆盖 `output_schema` 的必填顶层字段、`risk_check` 的 `PASS/WARN/BLOCK` 合同和 `fusion_notes`。
+
+README 也同步补了这次更新记录和 JSON 入口说明，见 [README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:35)、[README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:430)、[README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:601)；示例总览页也加了 JSON 样例入口，见 [examples.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/examples.md:1)。这样改的原因很直接：仓库之前已经声明支持 `output_format: 'json'`，但没有现成 payload，结构化接入需要靠猜，属于真实的开箱即用缺口。
+
+验证已跑并通过：`python3 -m unittest discover -s tests`、`python3 test_runner.py --no-write-report`、`python3 -m py_compile test_runner.py tests/test_test_runner.py`，以及对两个新 JSON 文件的解析检查。未提交，未推送。
+
+### 2026-05-06
+
+这次只做了一项高置信度改进：把仓库里“声明支持 JSON 模式”这件事补到真正可复制。之前 README 和 `schemas/*.json` 说明了 `output_format: 'json'`，但仓库没有一对现成的结构化输入 / 输出样例，`input_schema` 也没有任何基础回归覆盖；对接的人需要自己猜第一份 payload 长什么样。我新增了 [schemas/input_example.json](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/input_example.json) 和 [schemas/output_example.json](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/output_example.json)，用仓库已经主推的 v1.1 场景“方文山人格 × electronic `50:50` 融合”做了一对可直接复用的 JSON 样例。
+
+对应的 smoke test 我补到了 [tests/test_test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py)，现在会确认这两个 example 文件可解析，并且关键字段与 [schemas/output_schema.json](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/output_schema.json) 的必填顶层字段、`risk_check` tri-state、`fusion_notes` 合同保持一致。README、`README-GITHUB.md` 和 `examples.md` 也同步加了入口说明。
+
+验证已跑并通过：
+- `python3 -m unittest discover -s tests`
+- `python3 test_runner.py --no-write-report`
+- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
+- `python3 -c "import json, pathlib; [json.loads(pathlib.Path(p).read_text(encoding='utf-8')) for p in ['schemas/input_example.json', 'schemas/output_example.json']]"`
+
+未提交，未推送。
+
 ### 2026-05-05 09:35
 
 这次只做了一项高置信度改进：修正结构化输出 schema 和仓库文档之间的真实不一致。之前 `schemas/output_schema.json` 会把 `risk_check.overall: "WARN"` 判成非法，因为它错误地要求未文档化的 `WARN_WITH_REWRITES`；但 README、`test_runner.py` 和示例一直都在用 `PASS / WARN / BLOCK`。我把这个合同统一到了 [schemas/output_schema.json](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/output_schema.json:180)，并补了一个回归测试锁定它，见 [tests/test_test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py:76)。主 README 也同步更新了本次变更记录和 JSON 用法说明，见 [README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:35)、[README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:404)、[README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:571)。
@@ -415,6 +437,10 @@ const output = await skill.run({
 
 如果切到 `output_format: 'json'`，`risk_check` 里的状态标签也和 markdown 第 9 段保持同一套枚举：`PASS` / `WARN` / `BLOCK`。融合模式下可额外返回 `fusion_notes`。
 
+如果你准备直接接结构化输出，仓库里现在有一对可复制的样例：
+- `schemas/input_example.json`：完整演示 JSON 请求如何表达主题、情绪、词人人格和 `fusion`
+- `schemas/output_example.json`：对应的 10 段 JSON 响应，包含 `risk_check` 与融合模式下的 `fusion_notes`
+
 ### 玩法 4：指定词人风格（词人人格模式）🆕
 
 **你说**："用方文山的笔法写一首关于被遗忘的渡口的中国风歌"
@@ -581,6 +607,7 @@ const output = await skill.run({
 - ✓ `test_01`–`test_06` 的关键场景规则，例如 `test_01` 只统计显式 `示例句` 列表项、冷启动提问、复制请求拒绝、东方陈词黑名单，以及 v1.1 的词人人格 / 融合标记检查
 
 `schemas/input_schema.json` 和 `schemas/output_schema.json` 仍然保留，主要用于结构化集成和人工对照；当前 `test_runner.py` 不会直接对 markdown 输出执行 JSON Schema 校验。结构化输出里的 `risk_check.overall` 也与文档中的 Similarity Guard 保持一致，统一使用 `PASS` / `WARN` / `BLOCK`。
+如果你需要一个现成的结构化对接起点，可以直接复制 `schemas/input_example.json` 和 `schemas/output_example.json`；对应 smoke test 已纳入 `tests/test_test_runner.py`。
 
 **可集成 CI/CD**：
 ```bash
@@ -742,7 +769,7 @@ python3 test_runner.py --report-file ./reports/jay-chou-test-report.md
 
 ---
 
-**版本**: v1.1  **最后更新**: 2026-04-13  **维护者**: Claude + 社区
+**版本**: v1.1  **最后更新**: 2026-05-06  **维护者**: Claude + 社区
 
 ---
 
