@@ -201,7 +201,7 @@
     },
     "fusion_notes": {
       "type": "object",
-      "description": "11. 融合说明（仅融合模式输出）。",
+      "description": "融合说明（仅融合模式输出）。对应 markdown 第 10 段后的附加说明；若继续编号，使用第 11 段也合法。",
       "properties": {
         "fusion_style": { "type": "string", "description": "融合风格名称。" },
         "ratio": { "type": "string", "description": "融合比例，如 '70:30'。" },

@@ -32,6 +32,25 @@
 
 <!-- github-autopilot:updates:start -->
 
+### 2026-05-07 09:37
+
+这次只做了一项高置信度改进：修复融合模式里 `Fusion Notes` 的编号合同不一致。[test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py) 现在在继续要求 `1–10` 段完整的同时，也接受可选的 `### 11. 融合说明 / Fusion Notes`；之前这种写法会被误判成“10 段模板失败”。我同时在 [tests/test_test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py) 加了回归测试，并把 [schemas/output_schema.json](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/output_schema.json) 的 `fusion_notes` 描述改成和实际行为一致。
+
+README 也已同步更新：主 [README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md) 增加了本次更新记录，并补充说明 `fusion_notes` 对应的是第 10 段后的附加说明，若继续编号成第 11 段也合法；[test_runner.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md) 和 [README-GITHUB.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md) 也做了同样同步。这个改动的原因很直接：schema 之前暗示“融合说明是第 11 段”，但校验器不接受，属于真实的文档/校验合同漂移。
+
+已跑验证：
+- `python3 -m unittest discover -s tests`
+- `python3 test_runner.py --no-write-report`
+- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
+
+结果是单测 `14` 项全部通过，`test_runner.py` 基础回归 `6` 个用例、`18` 个检查全部通过。未提交，未推送。
+
+### 2026-05-07
+
+这次只做了一项高置信度改进：统一融合模式里 `Fusion Notes` 的编号合同。之前 `schemas/output_schema.json` 把 `fusion_notes` 描述成“11. 融合说明”，但 `test_runner.py` 对 markdown 完整输出仍只接受严格的 `1–10` 编号；如果有人把融合说明写成 `### 11. 融合说明 Fusion Notes`，会被误判成 10 段模板失败。现在校验器会继续要求 `1–10` 必填，但额外接受可选的编号 11 融合说明；对应回归测试已经补到 `tests/test_test_runner.py`，schema 和测试说明也同步改成同一套说法。
+
+验证已跑并通过：`python3 -m unittest discover -s tests`、`python3 test_runner.py --no-write-report`、`python3 -m py_compile test_runner.py tests/test_test_runner.py`。未提交，未推送。
+
 ### 2026-05-06 09:38
 
 这次我只做了一项小而完整的改进：补齐 JSON 模式的开箱即用示例。新增了 [schemas/input_example.json](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/input_example.json:1) 和 [schemas/output_example.json](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/output_example.json:1)，用“方文山人格 × electronic `50:50` 融合”给出一对可直接复用的结构化请求/响应样例；同时在 [tests/test_test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py:86) 加了 smoke tests，确认这两个样例可解析，且输出样例覆盖 `output_schema` 的必填顶层字段、`risk_check` 的 `PASS/WARN/BLOCK` 合同和 `fusion_notes`。
@@ -436,6 +455,7 @@ const output = await skill.run({
 ```
 
 如果切到 `output_format: 'json'`，`risk_check` 里的状态标签也和 markdown 第 9 段保持同一套枚举：`PASS` / `WARN` / `BLOCK`。融合模式下可额外返回 `fusion_notes`。
+`fusion_notes` 对应 markdown 里的附加 `Fusion Notes` / `融合说明`；默认不计入 10 段正文，如果你想继续编号，写成 `### 11. 融合说明` 也算合法。
 
 如果你准备直接接结构化输出，仓库里现在有一对可复制的样例：
 - `schemas/input_example.json`：完整演示 JSON 请求如何表达主题、情绪、词人人格和 `fusion`
@@ -627,6 +647,7 @@ python3 test_runner.py --output-dir ./generated_outputs
 # 在已有生成结果文件时，继续校验 10 段结构 / Similarity Guard / 冷启动规则 / v1.1 融合标记
 # 对 test_02 的澄清问题分支和 test_05 的首轮响应，脚本会改走冷启动规则，不强制要求 10 段
 # `test_06.md` 还会额外检查融合比例、来源标记和融合说明
+# 融合说明默认是第 10 段后的附加说明；若继续编号成 `### 11. 融合说明 / Fusion Notes`，也会被视为合法
 # 目录中的文件名需对应为 test_01.md、test_02.md ...
 # 如果某个同名路径其实是目录而不是 markdown 文件，报告会给 WARN，不会抛 traceback
 # --output-dir 必须是已存在目录；路径写错时脚本会直接报错退出

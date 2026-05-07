@@ -32,6 +32,11 @@
 
 <!-- github-autopilot:updates:start -->
 
+### 2026-05-07
+
+- 统一融合模式的 `Fusion Notes` 编号合同：`test_runner.py` 现在在继续要求 `1–10` 段完整的同时，也接受可选的 `### 11. 融合说明 / Fusion Notes`，不再把它误判成模板失败。
+- `tests/test_test_runner.py` 新增回归测试锁定这个行为，`schemas/output_schema.json` 与 `test_runner.md` 也同步明确：`fusion_notes` 对应的是第 10 段后的附加说明，若继续编号，第 11 段同样合法。
+
 ### 2026-05-06
 
 - 新增 `schemas/input_example.json` 和 `schemas/output_example.json`，补上一对可直接复制的结构化 JSON 示例，覆盖 v1.1 的“方文山人格 + electronic `50:50` 融合”场景。
@@ -249,6 +254,7 @@ const output = await skill.run({
 ```
 
 如果切到 `output_format: 'json'`，`risk_check` 里的状态标签也和 markdown 第 9 段保持同一套枚举：`PASS` / `WARN` / `BLOCK`。融合模式下可额外返回 `fusion_notes`。
+`fusion_notes` 对应 markdown 里的附加 `Fusion Notes` / `融合说明`；默认不计入 10 段正文，如果你想继续编号，写成 `### 11. 融合说明` 也算合法。
 
 如果你准备直接接结构化输出，仓库里现在有一对可复制的样例：
 - `schemas/input_example.json`：完整演示 JSON 请求如何表达主题、情绪、词人人格和 `fusion`
@@ -440,6 +446,7 @@ python3 test_runner.py --output-dir ./generated_outputs
 # 在已有生成结果文件时，继续校验 10 段结构 / Similarity Guard / 冷启动规则 / v1.1 融合标记
 # 对 test_02 的澄清问题分支和 test_05 的首轮响应，脚本会改走冷启动规则，不强制要求 10 段
 # `test_06.md` 还会额外检查融合比例、来源标记和融合说明
+# 融合说明默认是第 10 段后的附加说明；若继续编号成 `### 11. 融合说明 / Fusion Notes`，也会被视为合法
 # 目录中的文件名需对应为 test_01.md、test_02.md ...
 # 如果某个同名路径其实是目录而不是 markdown 文件，报告会给 WARN，不会抛 traceback
 # --output-dir 必须是已存在目录；路径写错时脚本会直接报错退出

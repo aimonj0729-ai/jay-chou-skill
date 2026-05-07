@@ -213,6 +213,33 @@ class ValidateOutputForTestTests(unittest.TestCase):
         self.assertEqual(statuses["融合说明"], "PASS")
         self.assertEqual(statuses["融合侧音色"], "PASS")
 
+    def test_test_06_accepts_numbered_fusion_notes_as_section_11(self) -> None:
+        spec = test_runner.load_test_case(ROOT_DIR / "test_cases" / "test_06.md")
+        output_path = self.write_output(
+            build_full_output(
+                section_6="方文山系白描：木牌、檐角、宣纸与潮痕，不直说离别。",
+                section_7=(
+                    "- Intro: 古筝采样 [JC] + Synth Pad [F]\n"
+                    "- Verse: Piano 分解和弦 [JC] + Arpeggiator [F]\n"
+                    "- Chorus: 情绪弧线 [JC] + Sub bass [F] + 和声点缀 [MIX]\n"
+                    "- 比例：50:50"
+                ),
+                suffix=(
+                    "### 11. 融合说明 Fusion Notes\n"
+                    "- 融合方案：周杰伦 × electronic（50:50）\n"
+                    "- 保留维度：结构与情绪弧线 [JC]\n"
+                    "- 融合维度：编曲、节奏、音色 [MIX]\n"
+                ),
+            )
+        )
+
+        checks = test_runner.validate_output_for_test(spec, output_path)
+        statuses = {check.label: check.status for check in checks}
+
+        self.assertEqual(statuses["10 段模板"], "PASS")
+        self.assertEqual(statuses["融合说明"], "PASS")
+        self.assertEqual(statuses["融合来源标记"], "PASS")
+
     def test_test_06_missing_fusion_notes_fails(self) -> None:
         spec = test_runner.load_test_case(ROOT_DIR / "test_cases" / "test_06.md")
         output_path = self.write_output(

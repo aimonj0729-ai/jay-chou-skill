@@ -29,6 +29,10 @@ NUMBERED_SECTION_PATTERN = re.compile(r"^###\s+(\d+)\.\s+.+$", re.MULTILINE)
 FUSION_SOURCE_MARKER_PATTERN = re.compile(r"\[(?:JC|F|MIX)\]")
 LYRIC_SAMPLE_MARKER_PATTERN = re.compile(r"(?:原创)?示例句|sample lines", re.IGNORECASE)
 LIST_ITEM_PATTERN = re.compile(r"^\s*(?:[-*]|\d+\.)\s+")
+OPTIONAL_NUMBERED_FUSION_SECTION_PATTERN = re.compile(
+    r"^###\s+11\.\s+.*(?:融合说明|Fusion Notes).*$",
+    re.MULTILINE | re.IGNORECASE,
+)
 
 
 @dataclass(frozen=True)
@@ -212,6 +216,10 @@ def contains_any(text: str, needles: tuple[str, ...]) -> bool:
     return any(needle in text for needle in needles)
 
 
+def has_optional_numbered_fusion_section(text: str, sections: dict[int, str]) -> bool:
+    return 11 in sections and OPTIONAL_NUMBERED_FUSION_SECTION_PATTERN.search(text) is not None
+
+
 def validate_test_case_spec(spec: TestCaseSpec) -> list[CheckResult]:
     checks: list[CheckResult] = []
     missing_sections = [section for section in REQUIRED_TEST_SECTIONS if section not in spec.body]
@@ -237,11 +245,27 @@ def validate_generic_output(text: str) -> list[CheckResult]:
     checks: list[CheckResult] = []
     sections = parse_numbered_sections(text)
     found_sections = tuple(sorted(sections))
-    if found_sections == REQUIRED_OUTPUT_SECTIONS:
-        checks.append(CheckResult("PASS", "10 段模板", "输出包含完整的 1–10 段编号章节。"))
+    optional_numbered_fusion = has_optional_numbered_fusion_section(text, sections)
+    missing = [str(number) for number in REQUIRED_OUTPUT_SECTIONS if number not in sections]
+    unexpected = [str(number) for number in found_sections if number not in REQUIRED_OUTPUT_SECTIONS]
+
+    if optional_numbered_fusion:
+        unexpected = [number for number in unexpected if number != "11"]
+
+    if not missing and not unexpected:
+        detail = "输出包含完整的 1–10 段编号章节。"
+        if optional_numbered_fusion:
+            detail = "输出包含完整的 1–10 段编号章节，并在第 11 段补充了融合说明。"
+        checks.append(CheckResult("PASS", "10 段模板", detail))
     else:
-        missing = [str(number) for number in REQUIRED_OUTPUT_SECTIONS if number not in sections]
-        checks.append(CheckResult("FAIL", "10 段模板", f"缺少编号章节: {', '.join(missing) if missing else '顺序异常'}"))
+        details: list[str] = []
+        if missing:
+            details.append(f"缺少编号章节: {', '.join(missing)}")
+        if unexpected:
+            details.append(f"多出未约定章节: {', '.join(unexpected)}")
+        if "11" in [str(number) for number in found_sections] and not optional_numbered_fusion:
+            details.append("第 11 段若存在，标题需明确写成融合说明 / Fusion Notes。")
+        checks.append(CheckResult("FAIL", "10 段模板", "；".join(details) if details else "编号章节顺序异常"))
 
     section_9 = sections.get(9, "")
     if contains_any(section_9, ("PASS", "WARN", "BLOCK")):
