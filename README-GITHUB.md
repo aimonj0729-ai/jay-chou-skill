@@ -32,6 +32,11 @@
 
 <!-- github-autopilot:updates:start -->
 
+### 2026-05-10
+
+- `test_runner.py` 现在会在 `test_02` 的“默认主题说明 + 完整 10 段”分支里检查 5 个输入参数是否都有明确证据：`轻 R&B`、`小调都市感`、`电钢铺底`、`副歌 Pad 扩张`、`城市夜景`。
+- `tests/test_test_runner.py` 新增通过 / 失败两组回归测试；主 README 和 `test_runner.md` 也同步补上这条自动化规则，避免 `test_cases/test_02.md` 和脚本再漂移。
+
 ### 2026-05-07
 
 - 统一融合模式的 `Fusion Notes` 编号合同：`test_runner.py` 现在在继续要求 `1–10` 段完整的同时，也接受可选的 `### 11. 融合说明 / Fusion Notes`，不再把它误判成模板失败。

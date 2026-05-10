@@ -216,6 +216,37 @@ def contains_any(text: str, needles: tuple[str, ...]) -> bool:
     return any(needle in text for needle in needles)
 
 
+def contains_any_casefold(text: str, needles: tuple[str, ...]) -> bool:
+    normalized = text.casefold()
+    return any(needle.casefold() in normalized for needle in needles)
+
+
+def find_missing_test_02_parameter_evidence(text: str) -> list[str]:
+    missing: list[str] = []
+
+    if not contains_any_casefold(text, ("轻 r&b", "轻r&b", "r&b", "rnb")):
+        missing.append("轻 R&B 律动")
+
+    has_minor_color = contains_any_casefold(text, ("小调", "minor"))
+    has_urban_color = contains_any(text, ("都市感", "都市", "城市夜", "城市", "夜景", "霓虹", "便利店", "末班车", "路灯"))
+    if not (has_minor_color and has_urban_color):
+        missing.append("小调都市感")
+
+    if not contains_any_casefold(text, ("电钢", "rhodes", "rhodes ep", "electric piano")):
+        missing.append("电钢铺底")
+
+    has_chorus_context = contains_any_casefold(text, ("副歌", "chorus", "c1", "c2", "c3"))
+    has_pad = contains_any_casefold(text, ("pad", "synth pad", "warm pad", "合成器 pad", "合成器铺底"))
+    has_expansion = contains_any(text, ("扩张", "打开", "拉开", "铺开"))
+    if not (has_chorus_context and has_pad and has_expansion):
+        missing.append("副歌 Pad 扩张")
+
+    if not contains_any(text, ("城市夜景", "夜景", "霓虹", "便利店", "末班车", "路灯", "街口", "街景", "午夜", "深夜", "出租车")):
+        missing.append("城市夜景意象")
+
+    return missing
+
+
 def has_optional_numbered_fusion_section(text: str, sections: dict[int, str]) -> bool:
     return 11 in sections and OPTIONAL_NUMBERED_FUSION_SECTION_PATTERN.search(text) is not None
 
@@ -324,6 +355,24 @@ def validate_output_for_test(spec: TestCaseSpec, output_path: Path) -> list[Chec
                 checks.append(CheckResult("PASS", "默认主题说明", "完整方案包含默认主题说明或可回退提示。"))
             else:
                 checks.append(CheckResult("WARN", "默认主题说明", "输出给了完整方案，但没有明确说明默认主题选择。"))
+
+            missing_parameter_evidence = find_missing_test_02_parameter_evidence(text)
+            if missing_parameter_evidence:
+                checks.append(
+                    CheckResult(
+                        "FAIL",
+                        "参数覆盖",
+                        f"完整方案缺少这些输入参数的明确证据: {', '.join(missing_parameter_evidence)}",
+                    )
+                )
+            else:
+                checks.append(
+                    CheckResult(
+                        "PASS",
+                        "参数覆盖",
+                        "完整方案覆盖了轻 R&B、小调都市感、电钢铺底、副歌 Pad 扩张和城市夜景意象这 5 项输入参数。",
+                    )
+                )
         elif 1 <= question_count <= 2:
             checks.append(CheckResult("PASS", "冷启动澄清", f"检测到 {question_count} 个澄清问题。"))
         elif has_default_theme_note:

@@ -32,6 +32,30 @@
 
 <!-- github-autopilot:updates:start -->
 
+### 2026-05-10 09:39
+
+补了一处 `test_02` 的真实自动化缺口。[test_runner.py](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py>) 现在在“默认主题说明 + 完整 10 段”分支里，会额外检查 5 个输入参数是否都在输出里留下明确证据：`轻 R&B`、`小调都市感`、`电钢铺底`、`副歌 Pad 扩张`、`城市夜景`。之前脚本只区分“澄清问题”还是“完整方案”，即使漏掉关键参数也可能误判通过。对应回归测试已补到 [tests/test_test_runner.py](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py>)，覆盖“参数齐全通过”和“缺参数失败”两种场景。
+
+README 已同步更新，见 [README.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md>)、[test_runner.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md>)、[README-GITHUB.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md>)。这样用户从主 README 就能直接看到这次新增的校验规则。
+
+验证已跑：
+- `python3 -m unittest discover -s tests`
+- `python3 test_runner.py --no-write-report`
+- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
+
+未提交，未推送。
+
+### 2026-05-10
+
+这次只做了一项高置信度改进：补上 [test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py) 对 `test_02` 完整方案分支的参数覆盖校验。之前脚本只区分“1–2 个澄清问题”还是“默认主题说明 + 完整 10 段”，但不会检查用户给的 5 个风格参数是否真的落到输出里；就算漏掉 `电钢铺底`、`副歌 Pad 扩张` 或 `城市夜景` 这类关键条件，也可能被误判为通过。现在它会在完整方案分支里聚合检查 `轻 R&B`、`小调都市感`、`电钢铺底`、`副歌 Pad 扩张`、`城市夜景` 这 5 项证据，缺项时直接列出缺失参数。
+
+对应回归测试已补到 [tests/test_test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py)，覆盖“5 项齐全应通过”和“缺参数应失败”两种场景；[test_runner.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md) 与 [README-GITHUB.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md) 也同步写明了这条规则。这样改的原因很直接：`test_cases/test_02.md` 早就把“5 个参数都要能在输出里找到证据”列成必须项，但脚本之前没有执行，属于真实的自动化缺口。
+
+验证已跑并通过：
+- `python3 -m unittest discover -s tests`
+- `python3 test_runner.py --no-write-report`
+- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
+
 ### 2026-05-07 09:37
 
 这次只做了一项高置信度改进：修复融合模式里 `Fusion Notes` 的编号合同不一致。[test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py) 现在在继续要求 `1–10` 段完整的同时，也接受可选的 `### 11. 融合说明 / Fusion Notes`；之前这种写法会被误判成“10 段模板失败”。我同时在 [tests/test_test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py) 加了回归测试，并把 [schemas/output_schema.json](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/output_schema.json) 的 `fusion_notes` 描述改成和实际行为一致。
@@ -624,7 +648,7 @@ const output = await skill.run({
 - ✓ 在预期应输出完整方案的场景里，生成结果是否包含完整 10 段编号章节
 - ✓ 在预期应输出完整方案的场景里，第 9 段是否带 `PASS` / `WARN` / `BLOCK`
 - ✓ 在预期应输出完整方案的场景里，第 10 段是否给出明确处理方向
-- ✓ `test_01`–`test_06` 的关键场景规则，例如 `test_01` 只统计显式 `示例句` 列表项、冷启动提问、复制请求拒绝、东方陈词黑名单，以及 v1.1 的词人人格 / 融合标记检查
+- ✓ `test_01`–`test_06` 的关键场景规则，例如 `test_01` 只统计显式 `示例句` 列表项，`test_02` 的完整方案分支会检查 `轻 R&B / 小调都市感 / 电钢铺底 / 副歌 Pad 扩张 / 城市夜景` 5 项参数证据，此外还覆盖冷启动提问、复制请求拒绝、东方陈词黑名单，以及 v1.1 的词人人格 / 融合标记检查
 
 `schemas/input_schema.json` 和 `schemas/output_schema.json` 仍然保留，主要用于结构化集成和人工对照；当前 `test_runner.py` 不会直接对 markdown 输出执行 JSON Schema 校验。结构化输出里的 `risk_check.overall` 也与文档中的 Similarity Guard 保持一致，统一使用 `PASS` / `WARN` / `BLOCK`。
 如果你需要一个现成的结构化对接起点，可以直接复制 `schemas/input_example.json` 和 `schemas/output_example.json`；对应 smoke test 已纳入 `tests/test_test_runner.py`。
@@ -646,6 +670,7 @@ python3 test_runner.py --test test_04.md --output ./generated_outputs/test_04.md
 python3 test_runner.py --output-dir ./generated_outputs
 # 在已有生成结果文件时，继续校验 10 段结构 / Similarity Guard / 冷启动规则 / v1.1 融合标记
 # 对 test_02 的澄清问题分支和 test_05 的首轮响应，脚本会改走冷启动规则，不强制要求 10 段
+# 如果 test_02 走的是完整方案分支，脚本还会检查 5 个输入参数是否都在输出里有明确证据
 # `test_06.md` 还会额外检查融合比例、来源标记和融合说明
 # 融合说明默认是第 10 段后的附加说明；若继续编号成 `### 11. 融合说明 / Fusion Notes`，也会被视为合法
 # 目录中的文件名需对应为 test_01.md、test_02.md ...

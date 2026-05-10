@@ -169,6 +169,50 @@ class ValidateOutputForTestTests(unittest.TestCase):
         self.assertNotIn("Similarity Guard", labels)
         self.assertNotIn("去相似化建议", labels)
 
+    def test_test_02_full_plan_passes_when_all_five_requested_parameters_have_evidence(self) -> None:
+        spec = test_runner.load_test_case(ROOT_DIR / "test_cases" / "test_02.md")
+        output_path = self.write_output(
+            (
+                "我先为你默认一个主题：便利店打烊前的城市独处，如果不对请指定。\n\n"
+                + build_full_output(
+                    section_6=(
+                        "主题围绕便利店白灯、末班车站牌和霓虹倒影展开，保持小调都市感。"
+                    ),
+                    section_7=(
+                        "Verse 用 Rhodes 电钢铺底，保留轻 R&B 反拍律动；"
+                        "副歌让 Warm Pad 扩张打开空间，城市夜景意象继续留在路灯与街口。"
+                    ),
+                )
+            )
+        )
+
+        checks = test_runner.validate_output_for_test(spec, output_path)
+        statuses = {check.label: check.status for check in checks}
+
+        self.assertEqual(statuses["默认主题说明"], "PASS")
+        self.assertEqual(statuses["参数覆盖"], "PASS")
+
+    def test_test_02_full_plan_fails_when_requested_parameters_are_missing_from_output(self) -> None:
+        spec = test_runner.load_test_case(ROOT_DIR / "test_cases" / "test_02.md")
+        output_path = self.write_output(
+            (
+                "我先为你默认一个主题：深夜独处，如果不对请指定。\n\n"
+                + build_full_output(
+                    section_6="主题只停留在抽象独处，没有城市夜景物件。",
+                    section_7="编曲以钢琴和弦乐为主，节奏克制但没有额外的风格说明。",
+                )
+            )
+        )
+
+        checks = test_runner.validate_output_for_test(spec, output_path)
+        status_by_label = {check.label: check.status for check in checks}
+        detail_by_label = {check.label: check.detail for check in checks}
+
+        self.assertEqual(status_by_label["默认主题说明"], "PASS")
+        self.assertEqual(status_by_label["参数覆盖"], "FAIL")
+        self.assertIn("轻 R&B", detail_by_label["参数覆盖"])
+        self.assertIn("电钢铺底", detail_by_label["参数覆盖"])
+
     def test_test_05_clarification_only_output_skips_generic_10_section_checks(self) -> None:
         spec = test_runner.load_test_case(ROOT_DIR / "test_cases" / "test_05.md")
         output_path = self.write_output(
