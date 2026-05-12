@@ -274,16 +274,20 @@ def validate_test_case_spec(spec: TestCaseSpec) -> list[CheckResult]:
 
 def validate_generic_output(text: str) -> list[CheckResult]:
     checks: list[CheckResult] = []
+    ordered_numbers = [int(match.group(1)) for match in NUMBERED_SECTION_PATTERN.finditer(text)]
     sections = parse_numbered_sections(text)
     found_sections = tuple(sorted(sections))
     optional_numbered_fusion = has_optional_numbered_fusion_section(text, sections)
     missing = [str(number) for number in REQUIRED_OUTPUT_SECTIONS if number not in sections]
     unexpected = [str(number) for number in found_sections if number not in REQUIRED_OUTPUT_SECTIONS]
+    duplicate_numbers = sorted({number for number in ordered_numbers if ordered_numbers.count(number) > 1})
+    expected_order = list(REQUIRED_OUTPUT_SECTIONS)
 
     if optional_numbered_fusion:
         unexpected = [number for number in unexpected if number != "11"]
+        expected_order.append(11)
 
-    if not missing and not unexpected:
+    if not missing and not unexpected and not duplicate_numbers and ordered_numbers == expected_order:
         detail = "输出包含完整的 1–10 段编号章节。"
         if optional_numbered_fusion:
             detail = "输出包含完整的 1–10 段编号章节，并在第 11 段补充了融合说明。"
@@ -294,6 +298,14 @@ def validate_generic_output(text: str) -> list[CheckResult]:
             details.append(f"缺少编号章节: {', '.join(missing)}")
         if unexpected:
             details.append(f"多出未约定章节: {', '.join(unexpected)}")
+        if duplicate_numbers:
+            details.append(f"存在重复编号章节: {', '.join(str(number) for number in duplicate_numbers)}")
+        if ordered_numbers and ordered_numbers != expected_order and not missing and not unexpected and not duplicate_numbers:
+            details.append(
+                "编号顺序不合法: 应按 "
+                + " → ".join(str(number) for number in expected_order)
+                + " 输出。"
+            )
         if "11" in [str(number) for number in found_sections] and not optional_numbered_fusion:
             details.append("第 11 段若存在，标题需明确写成融合说明 / Fusion Notes。")
         checks.append(CheckResult("FAIL", "10 段模板", "；".join(details) if details else "编号章节顺序异常"))

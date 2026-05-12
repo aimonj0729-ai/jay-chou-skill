@@ -32,6 +32,35 @@
 
 <!-- github-autopilot:updates:start -->
 
+### 2026-05-12 09:35
+
+**改动**
+
+这次只做了一项高置信度修复：收紧了 [test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py) 的 `10 段模板` 校验。之前它只检查是否“出现过 1–10 这些编号”，但不会拦截两类真实错误：编号乱序，以及重复编号覆盖。这样像 `3/4` 写反、或者出现两个 `### 9.` 的输出，也可能被误判通过；而 [test_cases/test_01.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_cases/test_01.md) 明确要求“标题按顺序编号”。
+
+我把这个缺口补上了，并在 [tests/test_test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py) 增加了“乱序失败”和“重复编号失败”两条回归测试。同时同步更新了主 [README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md)、[README-GITHUB.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md) 和 [test_runner.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md)，让文档和实现保持同一套合同：完整方案场景下，编号必须完整、按顺序且不重复。
+
+**验证**
+
+已运行并通过：
+
+- `python3 -m unittest discover -s tests`
+- `python3 test_runner.py --no-write-report`
+- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
+
+未提交，未推送。
+
+### 2026-05-12 09:33
+
+补了一处 `10 段模板` 校验的真实自动化缺口。[test_runner.py](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py>) 现在不只检查有没有 `1–10` 这些编号，还会拦截**编号乱序**和**重复编号**的输出；之前只看章节集合是否齐全，像 `4` 和 `3` 写反、或重复写两个 `### 9.` 这种情况也可能误判通过，但 [test_cases/test_01.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_cases/test_01.md>) 明确要求“标题按顺序编号”。对应回归测试已补到 [tests/test_test_runner.py](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py>)，覆盖“乱序失败”和“重复编号失败”两种场景。
+
+README 和 [test_runner.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md>) 也同步写明：完整方案场景下，`10 段模板` 现在校验的是“完整、按顺序且不重复”的编号合同。这样用户从主 README 就能直接看到这次修复了什么。
+
+验证已跑：
+- `python3 -m unittest discover -s tests`
+- `python3 test_runner.py --no-write-report`
+- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
+
 ### 2026-05-10 09:39
 
 补了一处 `test_02` 的真实自动化缺口。[test_runner.py](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py>) 现在在“默认主题说明 + 完整 10 段”分支里，会额外检查 5 个输入参数是否都在输出里留下明确证据：`轻 R&B`、`小调都市感`、`电钢铺底`、`副歌 Pad 扩张`、`城市夜景`。之前脚本只区分“澄清问题”还是“完整方案”，即使漏掉关键参数也可能误判通过。对应回归测试已补到 [tests/test_test_runner.py](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py>)，覆盖“参数齐全通过”和“缺参数失败”两种场景。
@@ -645,7 +674,7 @@ const output = await skill.run({
 
 `test_runner.py` 当前能直接检查的内容包括：
 - ✓ `test_cases/*.md` 是否包含用途 / 输入 / 预期行为 / 验收清单
-- ✓ 在预期应输出完整方案的场景里，生成结果是否包含完整 10 段编号章节
+- ✓ 在预期应输出完整方案的场景里，生成结果是否包含完整、按顺序且不重复的 10 段编号章节
 - ✓ 在预期应输出完整方案的场景里，第 9 段是否带 `PASS` / `WARN` / `BLOCK`
 - ✓ 在预期应输出完整方案的场景里，第 10 段是否给出明确处理方向
 - ✓ `test_01`–`test_06` 的关键场景规则，例如 `test_01` 只统计显式 `示例句` 列表项，`test_02` 的完整方案分支会检查 `轻 R&B / 小调都市感 / 电钢铺底 / 副歌 Pad 扩张 / 城市夜景` 5 项参数证据，此外还覆盖冷启动提问、复制请求拒绝、东方陈词黑名单，以及 v1.1 的词人人格 / 融合标记检查

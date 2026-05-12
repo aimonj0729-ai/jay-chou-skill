@@ -154,6 +154,55 @@ class ValidateOutputForTestTests(unittest.TestCase):
 
         self.assertEqual(statuses["歌词示例句"], "PASS")
 
+    def test_generic_output_fails_when_numbered_sections_are_out_of_order(self) -> None:
+        spec = test_runner.load_test_case(ROOT_DIR / "test_cases" / "test_01.md")
+        output_path = self.write_output(
+            "\n\n".join(
+                [
+                    "### 1. 核心概念\n渡口、潮汐与未寄出的信。",
+                    "### 2. 情绪轨迹\n克制 → 推进 → 释放 → 留白。",
+                    "### 4. 和声方向\nDm - Bb - Gm - A。",
+                    "### 3. 结构建议\nIntro(4) - V1(8) - Pre(4) - C1(8) - Bridge(8) - C3(8) - Outro(8)",
+                    "### 5. 旋律设计建议\n弱起进入，副歌拉高音区。",
+                    "### 6. 歌词意象与叙事方案\n- **原创示例句**（3 条）：\n1. 渡口的旧灯照着潮痕。\n2. 宣纸把晚风折成一页。\n3. 木船没说话，只晃了晃绳结。",
+                    "### 7. 编曲推进方案\nPiano 为主，副歌加入 Strings 和鼓组。",
+                    "### 8. 副歌 Hook 构思\n音区 F4-A4，节奏有切分，歌词锚点明确。",
+                    "### 9. 原创性风险检查\nPASS / WARN / BLOCK",
+                    "### 10. 去相似化建议\n建议保留主体结构，只微调 hook。",
+                ]
+            )
+            + "\n"
+        )
+
+        checks = test_runner.validate_output_for_test(spec, output_path)
+        status_by_label = {check.label: check.status for check in checks}
+        detail_by_label = {check.label: check.detail for check in checks}
+
+        self.assertEqual(status_by_label["10 段模板"], "FAIL")
+        self.assertIn("编号顺序不合法", detail_by_label["10 段模板"])
+
+    def test_generic_output_fails_when_numbered_sections_are_duplicated(self) -> None:
+        spec = test_runner.load_test_case(ROOT_DIR / "test_cases" / "test_01.md")
+        output_path = self.write_output(
+            build_full_output(
+                section_6=(
+                    "- **原创示例句**（3 条）：\n"
+                    "1. 渡口的旧灯照着潮痕。\n"
+                    "2. 宣纸把晚风折成一页。\n"
+                    "3. 木船没说话，只晃了晃绳结。"
+                ),
+                section_7="Piano 为主，副歌加入 Strings 和鼓组。",
+                suffix="### 9. 原创性风险检查（补写）\nPASS",
+            )
+        )
+
+        checks = test_runner.validate_output_for_test(spec, output_path)
+        status_by_label = {check.label: check.status for check in checks}
+        detail_by_label = {check.label: check.detail for check in checks}
+
+        self.assertEqual(status_by_label["10 段模板"], "FAIL")
+        self.assertIn("存在重复编号章节: 9", detail_by_label["10 段模板"])
+
     def test_test_02_clarification_only_output_skips_generic_10_section_checks(self) -> None:
         spec = test_runner.load_test_case(ROOT_DIR / "test_cases" / "test_02.md")
         output_path = self.write_output(
