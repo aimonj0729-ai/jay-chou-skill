@@ -5,6 +5,7 @@ Jay Chou Skill test runner.
 This runner has two practical jobs:
 1. Validate that the markdown regression test suite under test_cases/ is complete.
 2. Optionally validate generated markdown outputs against the documented rules.
+3. Optionally validate the bundled structured JSON examples against the repo schemas.
 
 It does not call any remote model by itself. Instead, pass saved outputs with
 --output or --output-dir after you generate them in Claude/Codex.
@@ -13,6 +14,7 @@ It does not call any remote model by itself. Instead, pass saved outputs with
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import sys
 from dataclasses import dataclass
@@ -22,6 +24,10 @@ from pathlib import Path
 ROOT_DIR = Path(__file__).resolve().parent
 TEST_CASES_DIR = ROOT_DIR / "test_cases"
 DEFAULT_REPORT_PATH = ROOT_DIR / "test-report.md"
+INPUT_SCHEMA_PATH = ROOT_DIR / "schemas" / "input_schema.json"
+OUTPUT_SCHEMA_PATH = ROOT_DIR / "schemas" / "output_schema.json"
+INPUT_EXAMPLE_PATH = ROOT_DIR / "schemas" / "input_example.json"
+OUTPUT_EXAMPLE_PATH = ROOT_DIR / "schemas" / "output_example.json"
 REQUIRED_TEST_SECTIONS = ("## 用途", "## 输入", "## 预期行为", "## 验收清单")
 REQUIRED_OUTPUT_SECTIONS = tuple(range(1, 11))
 QUESTION_PATTERN = re.compile(r"[?？]")
@@ -99,6 +105,11 @@ def parse_args() -> argparse.Namespace:
         "--no-write-report",
         action="store_true",
         help="Only print the report to stdout.",
+    )
+    parser.add_argument(
+        "--validate-structured-examples",
+        action="store_true",
+        help="Also validate schemas/input_example.json and schemas/output_example.json against the bundled schema subset checks.",
     )
     return parser.parse_args()
 
@@ -219,6 +230,122 @@ def contains_any(text: str, needles: tuple[str, ...]) -> bool:
 def contains_any_casefold(text: str, needles: tuple[str, ...]) -> bool:
     normalized = text.casefold()
     return any(needle.casefold() in normalized for needle in needles)
+
+
+def load_json_document(path: Path) -> object:
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def json_type_matches(value: object, expected_type: str) -> bool:
+    if expected_type == "object":
+        return isinstance(value, dict)
+    if expected_type == "array":
+        return isinstance(value, list)
+    if expected_type == "string":
+        return isinstance(value, str)
+    if expected_type == "integer":
+        return isinstance(value, int) and not isinstance(value, bool)
+    if expected_type == "boolean":
+        return isinstance(value, bool)
+    if expected_type == "number":
+        return isinstance(value, (int, float)) and not isinstance(value, bool)
+    if expected_type == "null":
+        return value is None
+    return True
+
+
+def validate_json_instance_against_schema(instance: object, schema: object, path: str = "$") -> list[str]:
+    if not isinstance(schema, dict):
+        return []
+
+    errors: list[str] = []
+    expected_type = schema.get("type")
+    if expected_type is not None and not json_type_matches(instance, expected_type):
+        return [f"{path}: expected {expected_type}"]
+
+    enum_values = schema.get("enum")
+    if enum_values is not None and instance not in enum_values:
+        errors.append(f"{path}: value {instance!r} is not in enum {enum_values}")
+
+    if expected_type == "object" and isinstance(instance, dict):
+        required_keys = schema.get("required", [])
+        for key in required_keys:
+            if key not in instance:
+                errors.append(f"{path}: missing required property {key}")
+
+        properties = schema.get("properties", {})
+        for key, value in instance.items():
+            property_schema = properties.get(key)
+            if property_schema is not None:
+                errors.extend(validate_json_instance_against_schema(value, property_schema, f"{path}.{key}"))
+
+    if expected_type == "array" and isinstance(instance, list):
+        min_items = schema.get("minItems")
+        max_items = schema.get("maxItems")
+        if min_items is not None and len(instance) < min_items:
+            errors.append(f"{path}: expected at least {min_items} items, got {len(instance)}")
+        if max_items is not None and len(instance) > max_items:
+            errors.append(f"{path}: expected at most {max_items} items, got {len(instance)}")
+
+        item_schema = schema.get("items")
+        if item_schema is not None:
+            for index, item in enumerate(instance):
+                errors.extend(validate_json_instance_against_schema(item, item_schema, f"{path}[{index}]"))
+
+    if expected_type in {"integer", "number"} and isinstance(instance, (int, float)) and not isinstance(instance, bool):
+        minimum = schema.get("minimum")
+        maximum = schema.get("maximum")
+        if minimum is not None and instance < minimum:
+            errors.append(f"{path}: expected value >= {minimum}, got {instance}")
+        if maximum is not None and instance > maximum:
+            errors.append(f"{path}: expected value <= {maximum}, got {instance}")
+
+    one_of = schema.get("oneOf")
+    if one_of is not None:
+        match_count = sum(
+            1
+            for option in one_of
+            if not validate_json_instance_against_schema(instance, option, path)
+        )
+        if match_count != 1:
+            errors.append(f"{path}: expected exactly one oneOf match, got {match_count}")
+
+    any_of = schema.get("anyOf")
+    if any_of is not None and not any(
+        not validate_json_instance_against_schema(instance, option, path)
+        for option in any_of
+    ):
+        errors.append(f"{path}: did not satisfy anyOf requirement")
+
+    return errors
+
+
+def validate_json_artifact(schema_path: Path, example_path: Path, label: str) -> CheckResult:
+    try:
+        schema = load_json_document(schema_path)
+    except (OSError, json.JSONDecodeError) as exc:
+        return CheckResult("FAIL", label, f"无法读取 schema 文件 `{schema_path.name}`: {exc}")
+
+    try:
+        example = load_json_document(example_path)
+    except (OSError, json.JSONDecodeError) as exc:
+        return CheckResult("FAIL", label, f"无法读取示例文件 `{example_path.name}`: {exc}")
+
+    errors = validate_json_instance_against_schema(example, schema)
+    if not errors:
+        return CheckResult("PASS", label, f"`{example_path.name}` 符合 `{schema_path.name}` 的内建 JSON Schema 子集校验。")
+
+    preview = "；".join(errors[:3])
+    if len(errors) > 3:
+        preview += f"；另有 {len(errors) - 3} 条错误"
+    return CheckResult("FAIL", label, preview)
+
+
+def validate_structured_examples() -> tuple[CheckResult, ...]:
+    return (
+        validate_json_artifact(INPUT_SCHEMA_PATH, INPUT_EXAMPLE_PATH, "input_example.json × input_schema.json"),
+        validate_json_artifact(OUTPUT_SCHEMA_PATH, OUTPUT_EXAMPLE_PATH, "output_example.json × output_schema.json"),
+    )
 
 
 def find_missing_test_02_parameter_evidence(text: str) -> list[str]:
@@ -484,10 +611,13 @@ def evaluate(specs: list[TestCaseSpec], output_path: Path | None, output_dir: Pa
     return results
 
 
-def build_report(results: list[EvaluationResult]) -> str:
-    passed = sum(result.passed for result in results)
-    failed = sum(result.failed for result in results)
-    warnings = sum(result.warnings for result in results)
+def build_report(
+    results: list[EvaluationResult],
+    structured_example_checks: tuple[CheckResult, ...] = (),
+) -> str:
+    passed = sum(result.passed for result in results) + sum(1 for check in structured_example_checks if check.status == "PASS")
+    failed = sum(result.failed for result in results) + sum(1 for check in structured_example_checks if check.status == "FAIL")
+    warnings = sum(result.warnings for result in results) + sum(1 for check in structured_example_checks if check.status == "WARN")
     lines = [
         "# Jay Chou Skill Test Report",
         "",
@@ -497,6 +627,8 @@ def build_report(results: list[EvaluationResult]) -> str:
         f"- Failed checks: {failed}",
         "",
     ]
+    if structured_example_checks:
+        lines.insert(3, f"- Structured example checks: {len(structured_example_checks)}")
 
     for result in results:
         lines.append(f"## {result.spec.title}")
@@ -508,10 +640,17 @@ def build_report(results: list[EvaluationResult]) -> str:
             lines.append(f"- {marker} **{check.label}**: {check.detail}")
         lines.append("")
 
+    if structured_example_checks:
+        lines.append("## Structured JSON Examples")
+        for check in structured_example_checks:
+            marker = {"PASS": "✓", "WARN": "⚠", "FAIL": "✗"}[check.status]
+            lines.append(f"- {marker} **{check.label}**: {check.detail}")
+        lines.append("")
+
     overall = "PASS" if failed == 0 else "FAIL"
     lines.append(f"## Summary")
     lines.append(f"- Overall status: **{overall}**")
-    lines.append("- Interpretation: `python3 test_runner.py` validates the regression suite itself; pass `--output` or `--output-dir` to validate generated outputs.")
+    lines.append("- Interpretation: `python3 test_runner.py` validates the regression suite itself; pass `--output` / `--output-dir` for saved markdown outputs, or `--validate-structured-examples` for the bundled JSON examples.")
     return "\n".join(lines) + "\n"
 
 
@@ -520,7 +659,8 @@ def main() -> int:
     specs = resolve_test_cases(args.test)
     output_path, output_dir = resolve_cli_paths(args, specs)
     results = evaluate(specs, output_path, output_dir)
-    report = build_report(results)
+    structured_example_checks = validate_structured_examples() if args.validate_structured_examples else ()
+    report = build_report(results, structured_example_checks=structured_example_checks)
 
     if not args.no_write_report:
         report_path = resolve_report_file_path(args.report_file)
@@ -530,7 +670,10 @@ def main() -> int:
             raise SystemExit(f"Unable to write report file: {report_path} ({exc.strerror or exc})") from exc
 
     print(report)
-    return 1 if any(result.failed for result in results) else 0
+    has_failures = any(result.failed for result in results) or any(
+        check.status == "FAIL" for check in structured_example_checks
+    )
+    return 1 if has_failures else 0
 
 
 if __name__ == "__main__":

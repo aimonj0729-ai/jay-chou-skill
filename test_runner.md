@@ -1,6 +1,6 @@
 # Test Runner —— 回归套件与输出校验
 
-> `test_runner.py` 有两个职责：校验 `test_cases/` 回归套件本身，以及校验你已经保存到本地的生成结果。
+> `test_runner.py` 的主职责是校验 `test_cases/` 回归套件本身，以及校验你已经保存到本地的生成结果；现在还可以额外用 `--validate-structured-examples` 检查仓库内置的 JSON 示例是否仍然符合 schema 合同。
 
 ## 它实际会做什么
 
@@ -21,6 +21,7 @@
 - `--output`：校验单个 test case 对应的一份输出。必须配合单个 `--test`，并且文件必须已存在
 - `--output-dir`：批量校验一个目录里的输出文件。目录必须已存在
 - `--report-file`：自定义 markdown 报告输出位置。父目录必须已存在，目标不能是目录
+- `--validate-structured-examples`：额外检查 `schemas/input_example.json` 和 `schemas/output_example.json` 是否通过仓库内建的 JSON Schema 子集校验
 
 通用检查包括（仅适用于**预期应输出完整 10 段方案**的场景）：
 
@@ -46,10 +47,10 @@
 为避免误解，当前脚本 **不会**：
 
 - 自动调用 Claude / Codex 生成内容
-- 对 markdown 输出执行 JSON Schema 校验
+- 对 markdown 输出执行通用 JSON Schema 校验
 - 自动计算 LUFS、BPM、和弦次数等音乐统计指标
 
-`schemas/input_schema.json` 和 `schemas/output_schema.json` 目前是给结构化集成和人工对照使用的参考文件，不是 `test_runner.py` 的执行输入。
+`schemas/input_schema.json` 和 `schemas/output_schema.json` 主要还是给结构化集成和人工对照使用；`test_runner.py` 不会拿它们去校验任意 markdown 输出，但现在可以在 `--validate-structured-examples` 模式下验证仓库自带的 JSON example 文件是否仍然满足这两份 schema 的核心合同。
 
 ## 常用命令
 
@@ -78,7 +79,12 @@ python3 test_runner.py --output-dir ./generated_outputs
 python3 test_runner.py --report-file ./reports/jay-chou-test-report.md
 # --report-file 的父目录必须已存在；路径指向目录时也会直接报错退出
 
-# 6) 只打印报告，不写 test-report.md
+# 6) 显式检查仓库内置的 JSON example 是否还符合 schema
+python3 test_runner.py --validate-structured-examples
+# 结果会在报告里追加一个 Structured JSON Examples 小节
+# 适合在修改 schemas/*.json 或 *_example.json 后做快速回归
+
+# 7) 只打印报告，不写 test-report.md
 python3 test_runner.py --no-write-report
 ```
 
@@ -128,7 +134,8 @@ generated_outputs/
 1. 先运行 `python3 test_runner.py`，确认 `test_cases/` 本身没有退化。
 2. 在 Claude/Codex 里按 `test_cases/*.md` 逐条生成输出，并保存成 `test_01.md` 这类文件名。
 3. 再运行 `python3 test_runner.py --output-dir ./generated_outputs`，检查 10 段结构、Similarity Guard、冷启动/拒绝行为，以及 v1.1 的词人人格 + 融合标记规则。
-4. 如需聚焦单个问题，用 `--test` + `--output` 缩小范围。
+4. 如果你刚改过 `schemas/*.json` 或 `*_example.json`，再跑 `python3 test_runner.py --validate-structured-examples`，确认结构化样例没有漂移。
+5. 如需聚焦单个问题，用 `--test` + `--output` 缩小范围。
 
 ## CI 示例
 
@@ -149,8 +156,8 @@ jobs:
         run: python3 test_runner.py
 ```
 
-如果你的 CI 流水线里还保存了模型生成结果，也可以在后续步骤里继续跑 `--output-dir`。
+如果你的 CI 流水线里还保存了模型生成结果，也可以在后续步骤里继续跑 `--output-dir`；如果你也维护结构化 JSON 示例，再补一条 `python3 test_runner.py --validate-structured-examples` 会更稳。
 
 ---
 
-**交付标准**：`test_runner.md` 描述的命令、输出和限制应与 `test_runner.py` 的真实行为保持一致。
+**交付标准**：`test_runner.md` 描述的命令、输出和限制应与 `test_runner.py` 的真实行为保持一致，包括 `--validate-structured-examples` 的能力边界。

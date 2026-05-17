@@ -32,6 +32,32 @@
 
 <!-- github-autopilot:updates:start -->
 
+### 2026-05-17 09:39
+
+这次只做了一件小而完整的事：给 [test_runner.py](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:109) 增加了 `--validate-structured-examples`，用于校验仓库自带的 [schemas/input_example.json](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/input_example.json:1) 和 [schemas/output_example.json](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/output_example.json:1) 是否仍然符合对应 schema。原因是仓库之前只有“能解析 + 少量字段”的 smoke test，不能真正拦截 example 和 schema 漂移；现在内建了一套不依赖第三方库的 JSON Schema 子集校验，并且在报告里追加 `Structured JSON Examples` 小节，失败时会返回非零退出码。
+
+对应地，我把 [tests/test_test_runner.py](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py:109) 补成了合同测试，覆盖“示例通过”、“缺失必填字段”和“非法枚举值”三种场景；[README.md](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:32)、[README-GITHUB.md](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md:32) 和 [test_runner.md](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md:1) 也同步写明了这个新入口和能力边界。
+
+已跑验证：
+- `python3 -m unittest discover -s tests`
+- `python3 test_runner.py --no-write-report`
+- `python3 test_runner.py --no-write-report --validate-structured-examples`
+- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
+
+未提交，未推送。
+
+### 2026-05-17
+
+这次只做了一项高置信度改进：给 [test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py) 新增了 `--validate-structured-examples`。仓库之前虽然已经提供 [schemas/input_schema.json](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/input_schema.json)、[schemas/output_schema.json](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/output_schema.json) 以及对应的 JSON 示例，但自动化只做“能解析”和少量字段 smoke test，不能真正兜住“示例持续符合 schema 合同”这件事。现在脚本会在不引入第三方依赖的前提下，对仓库自带的输入/输出示例执行一套内建的 JSON Schema 子集校验。
+
+我同时把 [tests/test_test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py) 从 smoke test 补强成合同测试：不仅确认两份 example 文件通过，还覆盖“必填字段缺失”和“枚举值非法”这类真实漂移场景。主 [README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md)、[README-GITHUB.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md) 和 [test_runner.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md) 也同步写明：`test_runner.py` 仍然不会拿 markdown 输出去跑通用 JSON Schema，但现在可以显式校验仓库内置的结构化样例。
+
+验证已跑并通过：
+- `python3 -m unittest discover -s tests`
+- `python3 test_runner.py --no-write-report`
+- `python3 test_runner.py --no-write-report --validate-structured-examples`
+- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
+
 ### 2026-05-12 09:35
 
 **改动**
@@ -514,6 +540,11 @@ const output = await skill.run({
 - `schemas/input_example.json`：完整演示 JSON 请求如何表达主题、情绪、词人人格和 `fusion`
 - `schemas/output_example.json`：对应的 10 段 JSON 响应，包含 `risk_check` 与融合模式下的 `fusion_notes`
 
+如果你想确认这两份样例没有和 schema 漂移，可以直接运行：
+```bash
+python3 test_runner.py --validate-structured-examples
+```
+
 ### 玩法 4：指定词人风格（词人人格模式）🆕
 
 **你说**："用方文山的笔法写一首关于被遗忘的渡口的中国风歌"
@@ -679,8 +710,8 @@ const output = await skill.run({
 - ✓ 在预期应输出完整方案的场景里，第 10 段是否给出明确处理方向
 - ✓ `test_01`–`test_06` 的关键场景规则，例如 `test_01` 只统计显式 `示例句` 列表项，`test_02` 的完整方案分支会检查 `轻 R&B / 小调都市感 / 电钢铺底 / 副歌 Pad 扩张 / 城市夜景` 5 项参数证据，此外还覆盖冷启动提问、复制请求拒绝、东方陈词黑名单，以及 v1.1 的词人人格 / 融合标记检查
 
-`schemas/input_schema.json` 和 `schemas/output_schema.json` 仍然保留，主要用于结构化集成和人工对照；当前 `test_runner.py` 不会直接对 markdown 输出执行 JSON Schema 校验。结构化输出里的 `risk_check.overall` 也与文档中的 Similarity Guard 保持一致，统一使用 `PASS` / `WARN` / `BLOCK`。
-如果你需要一个现成的结构化对接起点，可以直接复制 `schemas/input_example.json` 和 `schemas/output_example.json`；对应 smoke test 已纳入 `tests/test_test_runner.py`。
+`schemas/input_schema.json` 和 `schemas/output_schema.json` 仍然保留，主要用于结构化集成和人工对照；当前 `test_runner.py` 不会直接对 markdown 输出执行通用 JSON Schema 校验。结构化输出里的 `risk_check.overall` 也与文档中的 Similarity Guard 保持一致，统一使用 `PASS` / `WARN` / `BLOCK`。
+如果你需要一个现成的结构化对接起点，可以直接复制 `schemas/input_example.json` 和 `schemas/output_example.json`；现在 `tests/test_test_runner.py` 会校验它们持续满足 schema 合同，`python3 test_runner.py --validate-structured-examples` 也可以在 CLI 里显式跑这组检查。
 
 **可集成 CI/CD**：
 ```bash
@@ -710,6 +741,10 @@ python3 test_runner.py --output-dir ./generated_outputs
 python3 test_runner.py --report-file ./reports/jay-chou-test-report.md
 # 自定义报告输出位置
 # --report-file 的父目录必须已存在；如果路径指向目录或父目录不存在，脚本会直接报错退出
+
+python3 test_runner.py --validate-structured-examples
+# 对仓库自带的 input/output JSON example 执行内建 schema 子集校验
+# 适合在修改 schemas/*.json 或 *_example.json 后快速确认合同没有漂移
 ```
 
 ### 4. 多层次抽象架构
@@ -844,7 +879,7 @@ python3 test_runner.py --report-file ./reports/jay-chou-test-report.md
 
 ---
 
-**版本**: v1.1  **最后更新**: 2026-05-06  **维护者**: Claude + 社区
+**版本**: v1.1  **最后更新**: 2026-05-17  **维护者**: Claude + 社区
 
 ---
 

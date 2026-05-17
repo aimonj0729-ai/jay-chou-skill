@@ -106,6 +106,33 @@ class StructuredExampleFilesTests(unittest.TestCase):
         self.assertEqual(payload["fusion_notes"]["fusion_style"], "electronic")
         self.assertEqual(payload["fusion_notes"]["ratio"], "50:50")
 
+    def test_bundled_structured_examples_pass_builtin_schema_contract_checks(self) -> None:
+        checks = test_runner.validate_structured_examples()
+        statuses = {check.label: check.status for check in checks}
+
+        self.assertEqual(statuses["input_example.json × input_schema.json"], "PASS")
+        self.assertEqual(statuses["output_example.json × output_schema.json"], "PASS")
+
+    def test_builtin_schema_contract_check_reports_missing_required_field_and_bad_enum(self) -> None:
+        schema_path = ROOT_DIR / "schemas" / "output_schema.json"
+        schema = json.loads(schema_path.read_text(encoding="utf-8"))
+        example_path = ROOT_DIR / "schemas" / "output_example.json"
+        payload = json.loads(example_path.read_text(encoding="utf-8"))
+
+        broken_payload = {
+            **payload,
+            "risk_check": {
+                **payload["risk_check"],
+                "overall": "WARN_WITH_REWRITES",
+            },
+        }
+        broken_payload.pop("de_similarization")
+
+        errors = test_runner.validate_json_instance_against_schema(broken_payload, schema)
+
+        self.assertTrue(any("$.risk_check.overall" in error for error in errors))
+        self.assertTrue(any("missing required property de_similarization" in error for error in errors))
+
 
 class ValidateOutputForTestTests(unittest.TestCase):
     def write_output(self, body: str) -> Path:
