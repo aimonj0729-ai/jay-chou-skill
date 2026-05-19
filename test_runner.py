@@ -232,6 +232,19 @@ def contains_any_casefold(text: str, needles: tuple[str, ...]) -> bool:
     return any(needle.casefold() in normalized for needle in needles)
 
 
+def line_has_pass_or_block_verdict(
+    section_text: str,
+    label_needles: tuple[str, ...],
+) -> bool:
+    for raw_line in section_text.splitlines():
+        line = raw_line.strip()
+        if not contains_any_casefold(line, label_needles):
+            continue
+        if re.search(r"\b(?:PASS|BLOCK)\b", line, re.IGNORECASE):
+            return True
+    return False
+
+
 def load_json_document(path: Path) -> object:
     return json.loads(path.read_text(encoding="utf-8"))
 
@@ -539,6 +552,25 @@ def validate_output_for_test(spec: TestCaseSpec, output_path: Path) -> list[Chec
             checks.append(CheckResult("FAIL", "原句复用", f"输出仍包含高风险原句或换皮表达: {', '.join(hits)}"))
         else:
             checks.append(CheckResult("PASS", "原句复用", "未发现《晴天》高风险原句或换皮表达。"))
+
+        section_9 = sections.get(9, "")
+        missing_similarity_subchecks: list[str] = []
+        if not line_has_pass_or_block_verdict(section_9, ("和声相似度", "harmony similarity")):
+            missing_similarity_subchecks.append("和声相似度")
+        if not line_has_pass_or_block_verdict(section_9, ("hook 相似度", "hook相似度", "hook similarity")):
+            missing_similarity_subchecks.append("Hook 相似度")
+
+        if missing_similarity_subchecks:
+            checks.append(
+                CheckResult(
+                    "FAIL",
+                    "相似度子项",
+                    "第 9 段缺少这些必须显式给出 PASS/BLOCK 结论的子项: "
+                    + ", ".join(missing_similarity_subchecks),
+                )
+            )
+        else:
+            checks.append(CheckResult("PASS", "相似度子项", "第 9 段显式给出了和声相似度与 Hook 相似度的 PASS/BLOCK 结论。"))
 
     elif spec.slug == "test_05":
         question_count = count_questions(text)

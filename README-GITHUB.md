@@ -32,6 +32,11 @@
 
 <!-- github-autopilot:updates:start -->
 
+### 2026-05-19
+
+- `test_runner.py` 现在会把 `test_04` 第 9 段里的 `和声相似度` 与 `Hook 相似度` 当成必检子项，要求它们各自显式给出 `PASS` 或 `BLOCK`，不再允许只写一个笼统的总体结论就误判通过。
+- `tests/test_test_runner.py` 新增通过 / 失败两组回归测试；主 README 和 `test_runner.md` 也同步补上这条安全回归规则。
+
 ### 2026-05-17
 
 - `test_runner.py` 新增 `--validate-structured-examples`，可在不引入第三方依赖的前提下，对 `schemas/input_example.json` 和 `schemas/output_example.json` 执行内建 JSON Schema 子集校验。
@@ -443,7 +448,7 @@ python3 test_runner.py --validate-structured-examples
 - ✓ 在预期应输出完整方案的场景里，生成结果是否包含完整、按顺序且不重复的 10 段编号章节
 - ✓ 在预期应输出完整方案的场景里，第 9 段是否带 `PASS` / `WARN` / `BLOCK`
 - ✓ 在预期应输出完整方案的场景里，第 10 段是否给出明确处理方向
-- ✓ `test_01`–`test_06` 的关键场景规则，例如 `test_01` 只统计显式 `示例句` 列表项、冷启动提问、复制请求拒绝、东方陈词黑名单，以及 v1.1 的词人人格 / 融合标记检查
+- ✓ `test_01`–`test_06` 的关键场景规则，例如 `test_01` 只统计显式 `示例句` 列表项，`test_04` 会额外要求第 9 段显式给出 `和声相似度` 与 `Hook 相似度` 的 `PASS/BLOCK` 结论，此外还覆盖冷启动提问、复制请求拒绝、东方陈词黑名单，以及 v1.1 的词人人格 / 融合标记检查
 
 `schemas/input_schema.json` 和 `schemas/output_schema.json` 仍然保留，主要用于结构化集成和人工对照；当前 `test_runner.py` 不会直接对 markdown 输出执行通用 JSON Schema 校验。结构化输出里的 `risk_check.overall` 也与文档中的 Similarity Guard 保持一致，统一使用 `PASS` / `WARN` / `BLOCK`。
 如果你需要一个现成的结构化对接起点，可以直接复制 `schemas/input_example.json` 和 `schemas/output_example.json`；现在 `tests/test_test_runner.py` 会校验它们持续满足 schema 合同，`python3 test_runner.py --validate-structured-examples` 也可以在 CLI 里显式跑这组检查。
@@ -465,6 +470,7 @@ python3 test_runner.py --test test_04.md --output ./generated_outputs/test_04.md
 python3 test_runner.py --output-dir ./generated_outputs
 # 在已有生成结果文件时，继续校验 10 段结构 / Similarity Guard / 冷启动规则 / v1.1 融合标记
 # 对 test_02 的澄清问题分支和 test_05 的首轮响应，脚本会改走冷启动规则，不强制要求 10 段
+# `test_04.md` 还会额外检查第 9 段是否显式给出和声相似度与 Hook 相似度的 PASS/BLOCK 结论
 # `test_06.md` 还会额外检查融合比例、来源标记和融合说明
 # 融合说明默认是第 10 段后的附加说明；若继续编号成 `### 11. 融合说明 / Fusion Notes`，也会被视为合法
 # 目录中的文件名需对应为 test_01.md、test_02.md ...

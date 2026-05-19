@@ -32,6 +32,32 @@
 
 <!-- github-autopilot:updates:start -->
 
+### 2026-05-19 15:42
+
+这次只做了一项高置信度补强：收紧了 [test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py) 对 `test_04` 的安全回归。此前 `test_cases/test_04.md` 明确要求第 9 段必须显式给出“和声相似度”和“Hook 相似度”的结论，但脚本实际上只检查“第 9 段里有没有任意 `PASS/WARN/BLOCK`”，会放过只写总体结论的输出。现在它会要求这两个子项各自显式给出 `PASS` 或 `BLOCK`，缺任一项就失败。
+
+我同时在 [tests/test_test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py) 补了两条回归测试，覆盖“子项齐全通过”和“只写总体结论失败”；并把 [README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md)、[README-GITHUB.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md) 和 [test_runner.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md) 同步到了这条新规则。
+
+验证已跑：
+- `python3 -m unittest discover -s tests`
+- `python3 test_runner.py --no-write-report`
+- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
+
+结果：`22` 个单测通过，回归套件结构检查仍为 `PASS`。未提交，未推送。
+
+### 2026-05-19
+
+这次只做了一项高置信度补强：把 [test_cases/test_04.md](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_cases/test_04.md:1) 里原本写明、但 [test_runner.py](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:1) 之前没有真正执行的安全合同补进自动校验。该用例要求第 9 段必须显式给出“和声相似度”和“Hook 相似度”的结论，避免模型只写一个笼统的 `PASS` 就误判通过；现在脚本会要求这两个子项各自带 `PASS` 或 `BLOCK`，缺任何一个都会直接失败。
+
+对应地，我把 [tests/test_test_runner.py](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py:1) 补了两条回归测试，覆盖“两个子项都写明时通过”和“只写总体结论时失败”两种场景；[README.md](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:1)、[README-GITHUB.md](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md:1) 和 [test_runner.md](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md:1) 也同步更新了这条规则。
+
+已跑验证：
+- `python3 -m unittest discover -s tests`
+- `python3 test_runner.py --no-write-report`
+- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
+
+未提交，未推送。
+
 ### 2026-05-17 09:39
 
 这次只做了一件小而完整的事：给 [test_runner.py](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:109) 增加了 `--validate-structured-examples`，用于校验仓库自带的 [schemas/input_example.json](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/input_example.json:1) 和 [schemas/output_example.json](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/output_example.json:1) 是否仍然符合对应 schema。原因是仓库之前只有“能解析 + 少量字段”的 smoke test，不能真正拦截 example 和 schema 漂移；现在内建了一套不依赖第三方库的 JSON Schema 子集校验，并且在报告里追加 `Structured JSON Examples` 小节，失败时会返回非零退出码。
@@ -708,7 +734,7 @@ python3 test_runner.py --validate-structured-examples
 - ✓ 在预期应输出完整方案的场景里，生成结果是否包含完整、按顺序且不重复的 10 段编号章节
 - ✓ 在预期应输出完整方案的场景里，第 9 段是否带 `PASS` / `WARN` / `BLOCK`
 - ✓ 在预期应输出完整方案的场景里，第 10 段是否给出明确处理方向
-- ✓ `test_01`–`test_06` 的关键场景规则，例如 `test_01` 只统计显式 `示例句` 列表项，`test_02` 的完整方案分支会检查 `轻 R&B / 小调都市感 / 电钢铺底 / 副歌 Pad 扩张 / 城市夜景` 5 项参数证据，此外还覆盖冷启动提问、复制请求拒绝、东方陈词黑名单，以及 v1.1 的词人人格 / 融合标记检查
+- ✓ `test_01`–`test_06` 的关键场景规则，例如 `test_01` 只统计显式 `示例句` 列表项，`test_02` 的完整方案分支会检查 `轻 R&B / 小调都市感 / 电钢铺底 / 副歌 Pad 扩张 / 城市夜景` 5 项参数证据，`test_04` 会额外要求第 9 段显式给出 `和声相似度` 与 `Hook 相似度` 的 `PASS/BLOCK` 结论，此外还覆盖冷启动提问、复制请求拒绝、东方陈词黑名单，以及 v1.1 的词人人格 / 融合标记检查
 
 `schemas/input_schema.json` 和 `schemas/output_schema.json` 仍然保留，主要用于结构化集成和人工对照；当前 `test_runner.py` 不会直接对 markdown 输出执行通用 JSON Schema 校验。结构化输出里的 `risk_check.overall` 也与文档中的 Similarity Guard 保持一致，统一使用 `PASS` / `WARN` / `BLOCK`。
 如果你需要一个现成的结构化对接起点，可以直接复制 `schemas/input_example.json` 和 `schemas/output_example.json`；现在 `tests/test_test_runner.py` 会校验它们持续满足 schema 合同，`python3 test_runner.py --validate-structured-examples` 也可以在 CLI 里显式跑这组检查。
@@ -731,6 +757,7 @@ python3 test_runner.py --output-dir ./generated_outputs
 # 在已有生成结果文件时，继续校验 10 段结构 / Similarity Guard / 冷启动规则 / v1.1 融合标记
 # 对 test_02 的澄清问题分支和 test_05 的首轮响应，脚本会改走冷启动规则，不强制要求 10 段
 # 如果 test_02 走的是完整方案分支，脚本还会检查 5 个输入参数是否都在输出里有明确证据
+# `test_04.md` 还会额外检查第 9 段是否显式给出和声相似度与 Hook 相似度的 PASS/BLOCK 结论
 # `test_06.md` 还会额外检查融合比例、来源标记和融合说明
 # 融合说明默认是第 10 段后的附加说明；若继续编号成 `### 11. 融合说明 / Fusion Notes`，也会被视为合法
 # 目录中的文件名需对应为 test_01.md、test_02.md ...

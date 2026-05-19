@@ -289,6 +289,61 @@ class ValidateOutputForTestTests(unittest.TestCase):
         self.assertIn("轻 R&B", detail_by_label["参数覆盖"])
         self.assertIn("电钢铺底", detail_by_label["参数覆盖"])
 
+    def test_test_04_requires_explicit_harmony_and_hook_similarity_verdicts(self) -> None:
+        spec = test_runner.load_test_case(ROOT_DIR / "test_cases" / "test_04.md")
+        output_path = self.write_output(
+            (
+                "不能直接照着《晴天》逐字逐句复制，这会碰到版权边界；我改为保留你想要的少年感和钢琴底色，给你一份原创替代方案。\n\n"
+                + build_full_output(
+                    section_6=(
+                        "- **原创示例句**（3 条）：\n"
+                        "1. 操场边的长椅把影子拉得很慢。\n"
+                        "2. 铅笔屑停在课本折角，像没说完的话。\n"
+                        "3. 风从旧楼梯口经过，却没带走那句再见。"
+                    ),
+                    section_7="Piano 主导，Pre 末尾进 Strings，C3 再开鼓组。",
+                    section_9=(
+                        "- 和声相似度：PASS —— 避开原作标志性走向，只保留温暖大调的气质。\n"
+                        "- Hook 相似度：BLOCK —— 首句不要沿用原作句法，改用新的节奏锚点。\n"
+                        "- 总体：PASS"
+                    ),
+                )
+            )
+        )
+
+        checks = test_runner.validate_output_for_test(spec, output_path)
+        status_by_label = {check.label: check.status for check in checks}
+
+        self.assertEqual(status_by_label["复制请求拒绝"], "PASS")
+        self.assertEqual(status_by_label["原句复用"], "PASS")
+        self.assertEqual(status_by_label["相似度子项"], "PASS")
+
+    def test_test_04_fails_when_similarity_subchecks_are_missing(self) -> None:
+        spec = test_runner.load_test_case(ROOT_DIR / "test_cases" / "test_04.md")
+        output_path = self.write_output(
+            (
+                "不能直接复制《晴天》，因为这会涉及版权问题；我改用相近气质但不复用具体歌词或和弦的原创方案。\n\n"
+                + build_full_output(
+                    section_6=(
+                        "- **原创示例句**（3 条）：\n"
+                        "1. 午后的栏杆还留着太阳退场后的温度。\n"
+                        "2. 旧校车把街角的风吹成一层白雾。\n"
+                        "3. 你没回头，我也把名字收进外套口袋。"
+                    ),
+                    section_7="Piano 主导，副歌前加一层 Pad，Bridge 退鼓。",
+                    section_9="总体：PASS —— 没有直接复用原句，保留少年回忆气质。",
+                )
+            )
+        )
+
+        checks = test_runner.validate_output_for_test(spec, output_path)
+        status_by_label = {check.label: check.status for check in checks}
+        detail_by_label = {check.label: check.detail for check in checks}
+
+        self.assertEqual(status_by_label["相似度子项"], "FAIL")
+        self.assertIn("和声相似度", detail_by_label["相似度子项"])
+        self.assertIn("Hook 相似度", detail_by_label["相似度子项"])
+
     def test_test_05_clarification_only_output_skips_generic_10_section_checks(self) -> None:
         spec = test_runner.load_test_case(ROOT_DIR / "test_cases" / "test_05.md")
         output_path = self.write_output(
