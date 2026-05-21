@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -71,6 +72,29 @@ class ResolveReportFilePathTests(unittest.TestCase):
                 str(context.exception),
                 f"--report-file must point to a file: {report_dir.resolve()}",
             )
+
+
+class ResolveTestCasePathTests(unittest.TestCase):
+    def test_accepts_repo_relative_test_case_path_from_repo_root(self) -> None:
+        current_dir = Path.cwd()
+        try:
+            os.chdir(ROOT_DIR)
+            resolved = test_runner.resolve_test_case_path("./test_cases/test_04.md")
+        finally:
+            os.chdir(current_dir)
+
+        self.assertEqual(resolved, (ROOT_DIR / "test_cases" / "test_04.md").resolve())
+
+    def test_accepts_repo_relative_test_case_path_outside_repo_root(self) -> None:
+        current_dir = Path.cwd()
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            try:
+                os.chdir(tmp_dir)
+                resolved = test_runner.resolve_test_case_path("test_cases/test_04.md")
+            finally:
+                os.chdir(current_dir)
+
+        self.assertEqual(resolved, (ROOT_DIR / "test_cases" / "test_04.md").resolve())
 
 
 class OutputSchemaContractTests(unittest.TestCase):

@@ -12,7 +12,7 @@
 - 是否存在可复用的 fenced code 输入块
 - checklist 数量是否足够支撑回归
 
-如果你要只检查某个用例，可以传 `--test`。它接受 `test_04.md` 这种文件名，或一个绝对路径；路径必须存在且指向文件。
+如果你要只检查某个用例，可以传 `--test`。它接受 `test_04.md` 这种文件名、`./test_cases/test_04.md` 这种 repo 相对路径，或一个绝对路径；路径必须存在且指向文件。
 
 ### 模式 2：校验已保存的生成结果
 
@@ -62,7 +62,10 @@ python3 test_runner.py
 
 # 2) 只检查一个 test case 文档
 python3 test_runner.py --test test_04.md
-# --test 接受文件名或绝对路径；路径写错时脚本会直接报错退出
+# --test 接受文件名、repo 相对路径或绝对路径；路径写错时脚本会直接报错退出
+
+python3 test_runner.py --test ./test_cases/test_04.md
+# 如果你更习惯直接从仓库路径复制，也可以这样写
 
 # 3) 检查一个 test case + 它对应的一份已保存输出
 python3 test_runner.py --test test_04.md --output ./generated_outputs/test_04.md

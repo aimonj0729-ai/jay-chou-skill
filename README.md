@@ -32,6 +32,27 @@
 
 <!-- github-autopilot:updates:start -->
 
+### 2026-05-21 10:06
+
+修了一个高置信度的 CLI 体验问题：[`test_runner.py`](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py) 的 `--test` 现在除了继续支持 `test_04.md` 这种短文件名和绝对路径，也支持 `./test_cases/test_04.md`、`test_cases/test_04.md` 这类 repo 相对路径。之前这两种自然写法会被错误拼成双层 `test_cases/...`，直接报 `--test file not found`。我在 [`tests/test_test_runner.py`](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py) 补了两条回归测试，并把 [`README.md`](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md)、[`README-GITHUB.md`](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md) 和 [`test_runner.md`](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md) 的用法说明同步更新了。
+
+已跑验证：`python3 -m unittest discover -s tests`、`python3 test_runner.py --no-write-report`、`python3 test_runner.py --no-write-report --validate-structured-examples`、`python3 test_runner.py --test ./test_cases/test_04.md --no-write-report`、`python3 -m py_compile test_runner.py tests/test_test_runner.py`，均通过。未提交，未推送。仓库里原本已有 `__pycache__` 的脏工作区变更，我没有动它们。
+
+### 2026-05-21 10:04
+
+这次只做了一项高置信度的开发体验修复：补齐了 [test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py) 对 `--test` 相对路径的支持。之前它只接受 `test_04.md` 这类短文件名或绝对路径；如果用户很自然地传 `./test_cases/test_04.md` 或 `test_cases/test_04.md`，脚本会把路径错误地再拼到 `test_cases/` 下面，导致误报 `--test file not found`。现在它会依次兼容“当前工作目录相对路径、仓库根目录相对路径、`test_cases/` 下短文件名”三种写法，CLI 行为和用户直觉终于对齐。
+
+对应地，我在 [tests/test_test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py) 补了两条回归测试，分别锁定“从仓库根目录传 `./test_cases/...`”和“从仓库外目录传 `test_cases/...`”两种调用方式；[README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md)、[README-GITHUB.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md) 和 [test_runner.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md) 也同步更新了 `--test` 的真实用法。
+
+验证已跑：
+- `python3 -m unittest discover -s tests`
+- `python3 test_runner.py --no-write-report`
+- `python3 test_runner.py --no-write-report --validate-structured-examples`
+- `python3 test_runner.py --test ./test_cases/test_04.md --no-write-report`
+- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
+
+未提交，未推送。
+
 ### 2026-05-19 15:42
 
 这次只做了一项高置信度补强：收紧了 [test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py) 对 `test_04` 的安全回归。此前 `test_cases/test_04.md` 明确要求第 9 段必须显式给出“和声相似度”和“Hook 相似度”的结论，但脚本实际上只检查“第 9 段里有没有任意 `PASS/WARN/BLOCK`”，会放过只写总体结论的输出。现在它会要求这两个子项各自显式给出 `PASS` 或 `BLOCK`，缺任一项就失败。
@@ -746,8 +767,11 @@ python3 test_runner.py
 # 校验 test_cases/ 套件结构，并生成 test-report.md
 
 python3 test_runner.py --test test_04.md
-# 只检查一个用例文档；--test 接受文件名或绝对路径
+# 只检查一个用例文档；--test 接受文件名、repo 相对路径或绝对路径
 # 路径写错时脚本会直接报错退出
+
+python3 test_runner.py --test ./test_cases/test_04.md
+# 如果你更习惯直接复制仓库里的路径，这种写法也可以
 
 python3 test_runner.py --test test_04.md --output ./generated_outputs/test_04.md
 # 聚焦单个用例及其对应输出

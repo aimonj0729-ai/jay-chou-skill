@@ -86,7 +86,7 @@ def parse_args() -> argparse.Namespace:
         "--test",
         action="append",
         default=[],
-        help="Specific test case file(s) to validate. Accepts a filename like test_01.md or an absolute path.",
+        help="Specific test case file(s) to validate. Accepts a filename like test_01.md, a repo-relative path like ./test_cases/test_01.md, or an absolute path.",
     )
     parser.add_argument(
         "--output",
@@ -170,16 +170,27 @@ def load_test_case(path: Path) -> TestCaseSpec:
 
 def resolve_test_case_path(raw_value: str) -> Path:
     candidate = Path(raw_value).expanduser()
-    if not candidate.is_absolute():
-        candidate = TEST_CASES_DIR / candidate
-    candidate = candidate.resolve()
+    if candidate.is_absolute():
+        candidates = [candidate.resolve()]
+    else:
+        candidates = [candidate.resolve(), (ROOT_DIR / candidate).resolve()]
+        if len(candidate.parts) == 1:
+            candidates.append((TEST_CASES_DIR / candidate.name).resolve())
 
-    if not candidate.exists():
+    seen: set[Path] = set()
+    for candidate_path in candidates:
+        if candidate_path in seen:
+            continue
+        seen.add(candidate_path)
+        if not candidate_path.exists():
+            continue
+        if not candidate_path.is_file():
+            raise SystemExit(f"--test must point to a file: {candidate_path}")
+        return candidate_path
+
+    if not any(path.exists() for path in seen):
         raise SystemExit(f"--test file not found: {raw_value}")
-    if not candidate.is_file():
-        raise SystemExit(f"--test must point to a file: {candidate}")
-
-    return candidate
+    raise SystemExit(f"--test file not found: {raw_value}")
 
 
 def resolve_test_cases(raw_tests: list[str]) -> list[TestCaseSpec]:

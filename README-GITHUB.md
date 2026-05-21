@@ -32,6 +32,11 @@
 
 <!-- github-autopilot:updates:start -->
 
+### 2026-05-21
+
+- `test_runner.py` 的 `--test` 现在除了继续支持 `test_04.md` 这类短文件名和绝对路径，也支持 `./test_cases/test_04.md`、`test_cases/test_04.md` 这类 repo 相对路径，不会再把它们误拼成错误的双层 `test_cases/test_cases/...`。
+- `tests/test_test_runner.py` 新增两条回归测试，分别锁定“从仓库根目录传 `./test_cases/...`”和“从仓库外目录传 `test_cases/...`”这两种常见调用方式；主 README 与 `test_runner.md` 也已同步更新用法说明。
+
 ### 2026-05-19
 
 - `test_runner.py` 现在会把 `test_04` 第 9 段里的 `和声相似度` 与 `Hook 相似度` 当成必检子项，要求它们各自显式给出 `PASS` 或 `BLOCK`，不再允许只写一个笼统的总体结论就误判通过。
@@ -460,8 +465,11 @@ python3 test_runner.py
 # 校验 test_cases/ 套件结构，并生成 test-report.md
 
 python3 test_runner.py --test test_04.md
-# 只检查一个用例文档；--test 接受文件名或绝对路径
+# 只检查一个用例文档；--test 接受文件名、repo 相对路径或绝对路径
 # 路径写错时脚本会直接报错退出
+
+python3 test_runner.py --test ./test_cases/test_04.md
+# 如果你更习惯直接复制仓库里的路径，这种写法也可以
 
 python3 test_runner.py --test test_04.md --output ./generated_outputs/test_04.md
 # 聚焦单个用例及其对应输出
