@@ -291,7 +291,7 @@ def validate_json_instance_against_schema(instance: object, schema: object, path
     if enum_values is not None and instance not in enum_values:
         errors.append(f"{path}: value {instance!r} is not in enum {enum_values}")
 
-    if expected_type == "object" and isinstance(instance, dict):
+    if isinstance(instance, dict):
         required_keys = schema.get("required", [])
         for key in required_keys:
             if key not in instance:
@@ -303,7 +303,7 @@ def validate_json_instance_against_schema(instance: object, schema: object, path
             if property_schema is not None:
                 errors.extend(validate_json_instance_against_schema(value, property_schema, f"{path}.{key}"))
 
-    if expected_type == "array" and isinstance(instance, list):
+    if isinstance(instance, list):
         min_items = schema.get("minItems")
         max_items = schema.get("maxItems")
         if min_items is not None and len(instance) < min_items:

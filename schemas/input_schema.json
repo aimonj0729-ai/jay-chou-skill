@@ -11,7 +11,7 @@
     },
     "emotion": {
       "type": "object",
-      "description": "情绪曲线。起点情绪 → 终点情绪。",
+      "description": "情绪曲线。起点情绪 → 终点情绪。至少提供 start 或 end 之一，不能传空对象。",
       "properties": {
         "start": {
           "type": "string",
@@ -21,7 +21,11 @@
           "type": "string",
           "examples": ["释怀", "释放", "告别", "坦然", "感伤"]
         }
-      }
+      },
+      "anyOf": [
+        { "required": ["start"] },
+        { "required": ["end"] }
+      ]
     },
     "tempo": {
       "type": "integer",

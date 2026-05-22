@@ -32,6 +32,11 @@
 
 <!-- github-autopilot:updates:start -->
 
+### 2026-05-22
+
+- 收紧结构化 JSON 的嵌套合同：`schemas/input_schema.json` 不再接受 `emotion: {}` 这种空对象；`schemas/output_schema.json` 现在要求每条 `lyric_direction.sample_lines[]` 同时包含 `section` 和 `text`，每条 `de_similarization.actions[]` 同时包含 `target_section`、`issue` 和 `rewrite`。
+- `tests/test_test_runner.py` 新增 3 条回归测试锁定这些场景；主 README 也同步补充了新的 JSON 使用约束，现有 `schemas/input_example.json` 与 `schemas/output_example.json` 保持兼容。
+
 ### 2026-05-21
 
 - `test_runner.py` 的 `--test` 现在除了继续支持 `test_04.md` 这类短文件名和绝对路径，也支持 `./test_cases/test_04.md`、`test_cases/test_04.md` 这类 repo 相对路径，不会再把它们误拼成错误的双层 `test_cases/test_cases/...`。
@@ -284,6 +289,11 @@ const output = await skill.run({
 如果你准备直接接结构化输出，仓库里现在有一对可复制的样例：
 - `schemas/input_example.json`：完整演示 JSON 请求如何表达主题、情绪、词人人格和 `fusion`
 - `schemas/output_example.json`：对应的 10 段 JSON 响应，包含 `risk_check` 与融合模式下的 `fusion_notes`
+
+当前 schema 还额外收紧了 3 条最容易踩坑的嵌套合同：
+- `emotion` 不能是空对象；至少给 `start` 或 `end`
+- `lyric_direction.sample_lines[]` 的每一项都必须同时带 `section` 和 `text`
+- `de_similarization.actions[]` 的每一项都必须同时带 `target_section`、`issue` 和 `rewrite`
 
 如果你想确认这两份样例没有和 schema 漂移，可以直接运行：
 ```bash

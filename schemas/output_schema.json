@@ -125,6 +125,7 @@
           "maxItems": 6,
           "items": {
             "type": "object",
+            "required": ["section", "text"],
             "properties": {
               "section": { "type": "string" },
               "text": { "type": "string" }
@@ -190,6 +191,7 @@
           "type": "array",
           "items": {
             "type": "object",
+            "required": ["target_section", "issue", "rewrite"],
             "properties": {
               "target_section": { "type": "string" },
               "issue": { "type": "string" },

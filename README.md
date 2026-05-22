@@ -32,6 +32,22 @@
 
 <!-- github-autopilot:updates:start -->
 
+### 2026-05-22 09:39
+
+这次只做了一项高置信度改进：收紧结构化 JSON 合同，并补齐内建 schema 校验器对这类合同的真实执行。问题在于仓库原先会放过明显无效的 payload，比如 `emotion: {}`、缺少 `text` 的 `sample_lines[]`，以及缺少字段的 `de_similarization.actions[]`；更底层一点，[test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:295) 的内建 validator 只在 schema 显式写了 `type: object` 时才处理 `required`，导致 `anyOf` 里的 `required` 约束实际上可能失效。我把这个问题收口在 [schemas/input_schema.json](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/input_schema.json:11)、[schemas/output_schema.json](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/output_schema.json:128) 和 [test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:295) 里：现在 `emotion` 至少要给 `start` 或 `end`，每条歌词示例必须同时带 `section` 和 `text`，每条去相似化动作必须同时带 `target_section`、`issue` 和 `rewrite`。
+
+对应地，我在 [tests/test_test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py:160) 补了 5 条回归测试，覆盖空输入、空 `emotion`、残缺 `sample_lines[]` 和残缺 `actions[]`；主说明也同步写进了 [README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:35) 和 `README-GITHUB.md`，让用户直接能看到这次结构化合同收紧了什么。
+
+验证已跑并通过：`python3 -m unittest discover -s tests`、`python3 test_runner.py --no-write-report`、`python3 test_runner.py --no-write-report --validate-structured-examples`、`python3 -m py_compile test_runner.py tests/test_test_runner.py`。未提交，未推送。
+
+### 2026-05-22
+
+收紧了一处真实存在的结构化 JSON 合同漏洞：之前 [`schemas/input_schema.json`](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/input_schema.json) 会把 `emotion: {}` 这种空对象当成合法输入；[`schemas/output_schema.json`](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/output_schema.json) 也会放过缺少 `text` 的 `sample_lines[]`，以及缺少 `target_section` / `issue` / `rewrite` 的 `de_similarization.actions[]`。这会让仓库宣称可机器消费的结构化样例，实际上允许落成半残对象，接入方还得自己补二次防守。
+
+这次只做了一件小而完整的事：把这些嵌套字段收紧到文档本来就在表达的最低可用合同。现在 `emotion` 至少要提供 `start` 或 `end`；每条歌词示例必须同时带 `section` 和 `text`；每条去相似化动作必须同时带 `target_section`、`issue` 和 `rewrite`。对应回归测试已经补到 [`tests/test_test_runner.py`](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py)，现有 [`schemas/input_example.json`](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/input_example.json) 和 [`schemas/output_example.json`](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/output_example.json) 无需改动即可继续通过。
+
+已跑验证：`python3 -m unittest discover -s tests`、`python3 test_runner.py --no-write-report`、`python3 test_runner.py --no-write-report --validate-structured-examples`、`python3 -m py_compile test_runner.py tests/test_test_runner.py`，均通过。未提交，未推送。
+
 ### 2026-05-21 10:06
 
 修了一个高置信度的 CLI 体验问题：[`test_runner.py`](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py) 的 `--test` 现在除了继续支持 `test_04.md` 这种短文件名和绝对路径，也支持 `./test_cases/test_04.md`、`test_cases/test_04.md` 这类 repo 相对路径。之前这两种自然写法会被错误拼成双层 `test_cases/...`，直接报 `--test file not found`。我在 [`tests/test_test_runner.py`](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py) 补了两条回归测试，并把 [`README.md`](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md)、[`README-GITHUB.md`](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md) 和 [`test_runner.md`](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md) 的用法说明同步更新了。
@@ -586,6 +602,11 @@ const output = await skill.run({
 如果你准备直接接结构化输出，仓库里现在有一对可复制的样例：
 - `schemas/input_example.json`：完整演示 JSON 请求如何表达主题、情绪、词人人格和 `fusion`
 - `schemas/output_example.json`：对应的 10 段 JSON 响应，包含 `risk_check` 与融合模式下的 `fusion_notes`
+
+当前 schema 还额外收紧了 3 条最容易踩坑的嵌套合同：
+- `emotion` 不能是空对象；至少给 `start` 或 `end`
+- `lyric_direction.sample_lines[]` 的每一项都必须同时带 `section` 和 `text`
+- `de_similarization.actions[]` 的每一项都必须同时带 `target_section`、`issue` 和 `rewrite`
 
 如果你想确认这两份样例没有和 schema 漂移，可以直接运行：
 ```bash

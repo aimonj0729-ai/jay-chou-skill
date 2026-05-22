@@ -157,6 +157,71 @@ class StructuredExampleFilesTests(unittest.TestCase):
         self.assertTrue(any("$.risk_check.overall" in error for error in errors))
         self.assertTrue(any("missing required property de_similarization" in error for error in errors))
 
+    def test_input_schema_rejects_empty_emotion_object(self) -> None:
+        schema_path = ROOT_DIR / "schemas" / "input_schema.json"
+        schema = json.loads(schema_path.read_text(encoding="utf-8"))
+
+        errors = test_runner.validate_json_instance_against_schema({"emotion": {}}, schema)
+
+        self.assertTrue(errors)
+        self.assertTrue(any("$" in error for error in errors))
+
+    def test_input_schema_requires_theme_or_emotion_or_reference_mood(self) -> None:
+        schema_path = ROOT_DIR / "schemas" / "input_schema.json"
+        schema = json.loads(schema_path.read_text(encoding="utf-8"))
+
+        errors = test_runner.validate_json_instance_against_schema({}, schema)
+
+        self.assertTrue(errors)
+        self.assertTrue(any("anyOf" in error for error in errors))
+
+    def test_output_schema_requires_section_and_text_for_each_sample_line(self) -> None:
+        schema_path = ROOT_DIR / "schemas" / "output_schema.json"
+        schema = json.loads(schema_path.read_text(encoding="utf-8"))
+        example_path = ROOT_DIR / "schemas" / "output_example.json"
+        payload = json.loads(example_path.read_text(encoding="utf-8"))
+
+        broken_payload = {
+            **payload,
+            "lyric_direction": {
+                **payload["lyric_direction"],
+                "sample_lines": [
+                    {"section": "Verse"},
+                    {"text": "我把潮声折成一页。"},
+                    {"section": "Bridge", "text": "木船没开口，只把绳结晃给夜色看。"},
+                ],
+            },
+        }
+
+        errors = test_runner.validate_json_instance_against_schema(broken_payload, schema)
+
+        self.assertTrue(any("$.lyric_direction.sample_lines[0]" in error for error in errors))
+        self.assertTrue(any("$.lyric_direction.sample_lines[1]" in error for error in errors))
+
+    def test_output_schema_requires_complete_de_similarization_actions(self) -> None:
+        schema_path = ROOT_DIR / "schemas" / "output_schema.json"
+        schema = json.loads(schema_path.read_text(encoding="utf-8"))
+        example_path = ROOT_DIR / "schemas" / "output_example.json"
+        payload = json.loads(example_path.read_text(encoding="utf-8"))
+
+        broken_payload = {
+            **payload,
+            "de_similarization": {
+                **payload["de_similarization"],
+                "actions": [
+                    {"target_section": "hook_concept"},
+                    {"issue": "副歌切分组合过于常见。"},
+                    {"rewrite": "把第二小节从 16-16-8 改成 8-16-16-8。"},
+                ],
+            },
+        }
+
+        errors = test_runner.validate_json_instance_against_schema(broken_payload, schema)
+
+        self.assertTrue(any("$.de_similarization.actions[0]" in error for error in errors))
+        self.assertTrue(any("$.de_similarization.actions[1]" in error for error in errors))
+        self.assertTrue(any("$.de_similarization.actions[2]" in error for error in errors))
+
 
 class ValidateOutputForTestTests(unittest.TestCase):
     def write_output(self, body: str) -> Path:
