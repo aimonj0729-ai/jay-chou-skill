@@ -1,10 +1,30 @@
-# 🎵 Jay Chou Skill for Claude Code
+# 🎧 Jay Chou Skill for Claude Code
 
-> **下一个周杰伦，就是你。**
+<div align="center">
+
+**把一个深夜灵感，打磨成一首有画面、有转折、有 Hook 的华语流行歌方案。**
+
+`灵感碎片` → `词人风格` → `旋律/和声蓝图` → `编曲推进` → `原创性检查`
+
+![Claude Code](https://img.shields.io/badge/Claude%20Code-Skill-191919?style=flat-square)
+![CPop](https://img.shields.io/badge/C--Pop-songwriting-c86b3c?style=flat-square)
+![Data](https://img.shields.io/badge/148%20songs-pattern%20study-0f766e?style=flat-square)
+
+</div>
+
+> **一句话介绍**
+> 这是一个面向 Claude Code 的华语流行创作 Skill：把周杰伦作品里的高层创作规律，拆成可复用、可检查、可继续改写的原创歌曲方案生成流程。
 >
-> 把周杰伦 2000 年以来在华语流行中反复出现的**高层创作规律**，转写为一套可复用的原创歌曲方案生成器。
->
-> 不复制、不抄袭、不生成 MIDI —— 只给你**创作原则 + 风格参数 + 结构方案 + 意象系统 + 编曲路线**这一层的完整蓝图。
+> **不是复刻歌，不是洗稿机。** 它只输出创作原则、风格参数、结构方案、意象系统和编曲路线，帮你从“脑子里有点感觉”走到“可以开工制作”。
+
+## 🎭 Repo 气质卡
+
+| 你打开它时 | 它负责把你带到 |
+| --- | --- |
+| `我只想到：雨夜、钢琴、毕业` | 一套完整的情绪弧线、段落结构和 Hook 方案 |
+| `副歌有点平，但说不上来哪里不对` | 3 种可执行的旋律改造方向 |
+| `想要方文山味，但不能像作业` | 词人风格适配 + 原创性风险检查 |
+| `Meme 状态` | `我：就两个字“深夜”` → `Skill：给你端出一整套雨夜 R&B 宇宙` |
 
 ---
 
