@@ -28,423 +28,6 @@
 - **词人风格适配**：选择方文山（古典白描）、黄俊郎（超现实暗黑）、周杰伦自填词（口语直觉）三种词人人格，影响歌词的意象、句法、叙事和押韵
 - **跨风格融合**：将周杰伦风格与爵士/电子/拉丁/深度R&B/管弦乐/民谣/世界音乐/Trap 做有控制的融合，支持 90:10 到 30:70 的比例调节
 
-## Autopilot Updates
-
-<!-- github-autopilot:updates:start -->
-
-### 2026-05-22 09:39
-
-这次只做了一项高置信度改进：收紧结构化 JSON 合同，并补齐内建 schema 校验器对这类合同的真实执行。问题在于仓库原先会放过明显无效的 payload，比如 `emotion: {}`、缺少 `text` 的 `sample_lines[]`，以及缺少字段的 `de_similarization.actions[]`；更底层一点，[test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:295) 的内建 validator 只在 schema 显式写了 `type: object` 时才处理 `required`，导致 `anyOf` 里的 `required` 约束实际上可能失效。我把这个问题收口在 [schemas/input_schema.json](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/input_schema.json:11)、[schemas/output_schema.json](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/output_schema.json:128) 和 [test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:295) 里：现在 `emotion` 至少要给 `start` 或 `end`，每条歌词示例必须同时带 `section` 和 `text`，每条去相似化动作必须同时带 `target_section`、`issue` 和 `rewrite`。
-
-对应地，我在 [tests/test_test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py:160) 补了 5 条回归测试，覆盖空输入、空 `emotion`、残缺 `sample_lines[]` 和残缺 `actions[]`；主说明也同步写进了 [README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:35) 和 `README-GITHUB.md`，让用户直接能看到这次结构化合同收紧了什么。
-
-验证已跑并通过：`python3 -m unittest discover -s tests`、`python3 test_runner.py --no-write-report`、`python3 test_runner.py --no-write-report --validate-structured-examples`、`python3 -m py_compile test_runner.py tests/test_test_runner.py`。未提交，未推送。
-
-### 2026-05-22
-
-收紧了一处真实存在的结构化 JSON 合同漏洞：之前 [`schemas/input_schema.json`](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/input_schema.json) 会把 `emotion: {}` 这种空对象当成合法输入；[`schemas/output_schema.json`](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/output_schema.json) 也会放过缺少 `text` 的 `sample_lines[]`，以及缺少 `target_section` / `issue` / `rewrite` 的 `de_similarization.actions[]`。这会让仓库宣称可机器消费的结构化样例，实际上允许落成半残对象，接入方还得自己补二次防守。
-
-这次只做了一件小而完整的事：把这些嵌套字段收紧到文档本来就在表达的最低可用合同。现在 `emotion` 至少要提供 `start` 或 `end`；每条歌词示例必须同时带 `section` 和 `text`；每条去相似化动作必须同时带 `target_section`、`issue` 和 `rewrite`。对应回归测试已经补到 [`tests/test_test_runner.py`](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py)，现有 [`schemas/input_example.json`](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/input_example.json) 和 [`schemas/output_example.json`](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/output_example.json) 无需改动即可继续通过。
-
-已跑验证：`python3 -m unittest discover -s tests`、`python3 test_runner.py --no-write-report`、`python3 test_runner.py --no-write-report --validate-structured-examples`、`python3 -m py_compile test_runner.py tests/test_test_runner.py`，均通过。未提交，未推送。
-
-### 2026-05-21 10:06
-
-修了一个高置信度的 CLI 体验问题：[`test_runner.py`](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py) 的 `--test` 现在除了继续支持 `test_04.md` 这种短文件名和绝对路径，也支持 `./test_cases/test_04.md`、`test_cases/test_04.md` 这类 repo 相对路径。之前这两种自然写法会被错误拼成双层 `test_cases/...`，直接报 `--test file not found`。我在 [`tests/test_test_runner.py`](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py) 补了两条回归测试，并把 [`README.md`](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md)、[`README-GITHUB.md`](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md) 和 [`test_runner.md`](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md) 的用法说明同步更新了。
-
-已跑验证：`python3 -m unittest discover -s tests`、`python3 test_runner.py --no-write-report`、`python3 test_runner.py --no-write-report --validate-structured-examples`、`python3 test_runner.py --test ./test_cases/test_04.md --no-write-report`、`python3 -m py_compile test_runner.py tests/test_test_runner.py`，均通过。未提交，未推送。仓库里原本已有 `__pycache__` 的脏工作区变更，我没有动它们。
-
-### 2026-05-21 10:04
-
-这次只做了一项高置信度的开发体验修复：补齐了 [test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py) 对 `--test` 相对路径的支持。之前它只接受 `test_04.md` 这类短文件名或绝对路径；如果用户很自然地传 `./test_cases/test_04.md` 或 `test_cases/test_04.md`，脚本会把路径错误地再拼到 `test_cases/` 下面，导致误报 `--test file not found`。现在它会依次兼容“当前工作目录相对路径、仓库根目录相对路径、`test_cases/` 下短文件名”三种写法，CLI 行为和用户直觉终于对齐。
-
-对应地，我在 [tests/test_test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py) 补了两条回归测试，分别锁定“从仓库根目录传 `./test_cases/...`”和“从仓库外目录传 `test_cases/...`”两种调用方式；[README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md)、[README-GITHUB.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md) 和 [test_runner.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md) 也同步更新了 `--test` 的真实用法。
-
-验证已跑：
-- `python3 -m unittest discover -s tests`
-- `python3 test_runner.py --no-write-report`
-- `python3 test_runner.py --no-write-report --validate-structured-examples`
-- `python3 test_runner.py --test ./test_cases/test_04.md --no-write-report`
-- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
-
-未提交，未推送。
-
-### 2026-05-19 15:42
-
-这次只做了一项高置信度补强：收紧了 [test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py) 对 `test_04` 的安全回归。此前 `test_cases/test_04.md` 明确要求第 9 段必须显式给出“和声相似度”和“Hook 相似度”的结论，但脚本实际上只检查“第 9 段里有没有任意 `PASS/WARN/BLOCK`”，会放过只写总体结论的输出。现在它会要求这两个子项各自显式给出 `PASS` 或 `BLOCK`，缺任一项就失败。
-
-我同时在 [tests/test_test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py) 补了两条回归测试，覆盖“子项齐全通过”和“只写总体结论失败”；并把 [README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md)、[README-GITHUB.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md) 和 [test_runner.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md) 同步到了这条新规则。
-
-验证已跑：
-- `python3 -m unittest discover -s tests`
-- `python3 test_runner.py --no-write-report`
-- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
-
-结果：`22` 个单测通过，回归套件结构检查仍为 `PASS`。未提交，未推送。
-
-### 2026-05-19
-
-这次只做了一项高置信度补强：把 [test_cases/test_04.md](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_cases/test_04.md:1) 里原本写明、但 [test_runner.py](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:1) 之前没有真正执行的安全合同补进自动校验。该用例要求第 9 段必须显式给出“和声相似度”和“Hook 相似度”的结论，避免模型只写一个笼统的 `PASS` 就误判通过；现在脚本会要求这两个子项各自带 `PASS` 或 `BLOCK`，缺任何一个都会直接失败。
-
-对应地，我把 [tests/test_test_runner.py](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py:1) 补了两条回归测试，覆盖“两个子项都写明时通过”和“只写总体结论时失败”两种场景；[README.md](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:1)、[README-GITHUB.md](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md:1) 和 [test_runner.md](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md:1) 也同步更新了这条规则。
-
-已跑验证：
-- `python3 -m unittest discover -s tests`
-- `python3 test_runner.py --no-write-report`
-- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
-
-未提交，未推送。
-
-### 2026-05-17 09:39
-
-这次只做了一件小而完整的事：给 [test_runner.py](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:109) 增加了 `--validate-structured-examples`，用于校验仓库自带的 [schemas/input_example.json](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/input_example.json:1) 和 [schemas/output_example.json](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/output_example.json:1) 是否仍然符合对应 schema。原因是仓库之前只有“能解析 + 少量字段”的 smoke test，不能真正拦截 example 和 schema 漂移；现在内建了一套不依赖第三方库的 JSON Schema 子集校验，并且在报告里追加 `Structured JSON Examples` 小节，失败时会返回非零退出码。
-
-对应地，我把 [tests/test_test_runner.py](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py:109) 补成了合同测试，覆盖“示例通过”、“缺失必填字段”和“非法枚举值”三种场景；[README.md](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:32)、[README-GITHUB.md](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md:32) 和 [test_runner.md](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md:1) 也同步写明了这个新入口和能力边界。
-
-已跑验证：
-- `python3 -m unittest discover -s tests`
-- `python3 test_runner.py --no-write-report`
-- `python3 test_runner.py --no-write-report --validate-structured-examples`
-- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
-
-未提交，未推送。
-
-### 2026-05-17
-
-这次只做了一项高置信度改进：给 [test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py) 新增了 `--validate-structured-examples`。仓库之前虽然已经提供 [schemas/input_schema.json](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/input_schema.json)、[schemas/output_schema.json](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/output_schema.json) 以及对应的 JSON 示例，但自动化只做“能解析”和少量字段 smoke test，不能真正兜住“示例持续符合 schema 合同”这件事。现在脚本会在不引入第三方依赖的前提下，对仓库自带的输入/输出示例执行一套内建的 JSON Schema 子集校验。
-
-我同时把 [tests/test_test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py) 从 smoke test 补强成合同测试：不仅确认两份 example 文件通过，还覆盖“必填字段缺失”和“枚举值非法”这类真实漂移场景。主 [README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md)、[README-GITHUB.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md) 和 [test_runner.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md) 也同步写明：`test_runner.py` 仍然不会拿 markdown 输出去跑通用 JSON Schema，但现在可以显式校验仓库内置的结构化样例。
-
-验证已跑并通过：
-- `python3 -m unittest discover -s tests`
-- `python3 test_runner.py --no-write-report`
-- `python3 test_runner.py --no-write-report --validate-structured-examples`
-- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
-
-### 2026-05-12 09:35
-
-**改动**
-
-这次只做了一项高置信度修复：收紧了 [test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py) 的 `10 段模板` 校验。之前它只检查是否“出现过 1–10 这些编号”，但不会拦截两类真实错误：编号乱序，以及重复编号覆盖。这样像 `3/4` 写反、或者出现两个 `### 9.` 的输出，也可能被误判通过；而 [test_cases/test_01.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_cases/test_01.md) 明确要求“标题按顺序编号”。
-
-我把这个缺口补上了，并在 [tests/test_test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py) 增加了“乱序失败”和“重复编号失败”两条回归测试。同时同步更新了主 [README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md)、[README-GITHUB.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md) 和 [test_runner.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md)，让文档和实现保持同一套合同：完整方案场景下，编号必须完整、按顺序且不重复。
-
-**验证**
-
-已运行并通过：
-
-- `python3 -m unittest discover -s tests`
-- `python3 test_runner.py --no-write-report`
-- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
-
-未提交，未推送。
-
-### 2026-05-12 09:33
-
-补了一处 `10 段模板` 校验的真实自动化缺口。[test_runner.py](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py>) 现在不只检查有没有 `1–10` 这些编号，还会拦截**编号乱序**和**重复编号**的输出；之前只看章节集合是否齐全，像 `4` 和 `3` 写反、或重复写两个 `### 9.` 这种情况也可能误判通过，但 [test_cases/test_01.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_cases/test_01.md>) 明确要求“标题按顺序编号”。对应回归测试已补到 [tests/test_test_runner.py](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py>)，覆盖“乱序失败”和“重复编号失败”两种场景。
-
-README 和 [test_runner.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md>) 也同步写明：完整方案场景下，`10 段模板` 现在校验的是“完整、按顺序且不重复”的编号合同。这样用户从主 README 就能直接看到这次修复了什么。
-
-验证已跑：
-- `python3 -m unittest discover -s tests`
-- `python3 test_runner.py --no-write-report`
-- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
-
-### 2026-05-10 09:39
-
-补了一处 `test_02` 的真实自动化缺口。[test_runner.py](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py>) 现在在“默认主题说明 + 完整 10 段”分支里，会额外检查 5 个输入参数是否都在输出里留下明确证据：`轻 R&B`、`小调都市感`、`电钢铺底`、`副歌 Pad 扩张`、`城市夜景`。之前脚本只区分“澄清问题”还是“完整方案”，即使漏掉关键参数也可能误判通过。对应回归测试已补到 [tests/test_test_runner.py](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py>)，覆盖“参数齐全通过”和“缺参数失败”两种场景。
-
-README 已同步更新，见 [README.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md>)、[test_runner.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md>)、[README-GITHUB.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md>)。这样用户从主 README 就能直接看到这次新增的校验规则。
-
-验证已跑：
-- `python3 -m unittest discover -s tests`
-- `python3 test_runner.py --no-write-report`
-- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
-
-未提交，未推送。
-
-### 2026-05-10
-
-这次只做了一项高置信度改进：补上 [test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py) 对 `test_02` 完整方案分支的参数覆盖校验。之前脚本只区分“1–2 个澄清问题”还是“默认主题说明 + 完整 10 段”，但不会检查用户给的 5 个风格参数是否真的落到输出里；就算漏掉 `电钢铺底`、`副歌 Pad 扩张` 或 `城市夜景` 这类关键条件，也可能被误判为通过。现在它会在完整方案分支里聚合检查 `轻 R&B`、`小调都市感`、`电钢铺底`、`副歌 Pad 扩张`、`城市夜景` 这 5 项证据，缺项时直接列出缺失参数。
-
-对应回归测试已补到 [tests/test_test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py)，覆盖“5 项齐全应通过”和“缺参数应失败”两种场景；[test_runner.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md) 与 [README-GITHUB.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md) 也同步写明了这条规则。这样改的原因很直接：`test_cases/test_02.md` 早就把“5 个参数都要能在输出里找到证据”列成必须项，但脚本之前没有执行，属于真实的自动化缺口。
-
-验证已跑并通过：
-- `python3 -m unittest discover -s tests`
-- `python3 test_runner.py --no-write-report`
-- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
-
-### 2026-05-07 09:37
-
-这次只做了一项高置信度改进：修复融合模式里 `Fusion Notes` 的编号合同不一致。[test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py) 现在在继续要求 `1–10` 段完整的同时，也接受可选的 `### 11. 融合说明 / Fusion Notes`；之前这种写法会被误判成“10 段模板失败”。我同时在 [tests/test_test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py) 加了回归测试，并把 [schemas/output_schema.json](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/output_schema.json) 的 `fusion_notes` 描述改成和实际行为一致。
-
-README 也已同步更新：主 [README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md) 增加了本次更新记录，并补充说明 `fusion_notes` 对应的是第 10 段后的附加说明，若继续编号成第 11 段也合法；[test_runner.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md) 和 [README-GITHUB.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md) 也做了同样同步。这个改动的原因很直接：schema 之前暗示“融合说明是第 11 段”，但校验器不接受，属于真实的文档/校验合同漂移。
-
-已跑验证：
-- `python3 -m unittest discover -s tests`
-- `python3 test_runner.py --no-write-report`
-- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
-
-结果是单测 `14` 项全部通过，`test_runner.py` 基础回归 `6` 个用例、`18` 个检查全部通过。未提交，未推送。
-
-### 2026-05-07
-
-这次只做了一项高置信度改进：统一融合模式里 `Fusion Notes` 的编号合同。之前 `schemas/output_schema.json` 把 `fusion_notes` 描述成“11. 融合说明”，但 `test_runner.py` 对 markdown 完整输出仍只接受严格的 `1–10` 编号；如果有人把融合说明写成 `### 11. 融合说明 Fusion Notes`，会被误判成 10 段模板失败。现在校验器会继续要求 `1–10` 必填，但额外接受可选的编号 11 融合说明；对应回归测试已经补到 `tests/test_test_runner.py`，schema 和测试说明也同步改成同一套说法。
-
-验证已跑并通过：`python3 -m unittest discover -s tests`、`python3 test_runner.py --no-write-report`、`python3 -m py_compile test_runner.py tests/test_test_runner.py`。未提交，未推送。
-
-### 2026-05-06 09:38
-
-这次我只做了一项小而完整的改进：补齐 JSON 模式的开箱即用示例。新增了 [schemas/input_example.json](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/input_example.json:1) 和 [schemas/output_example.json](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/output_example.json:1)，用“方文山人格 × electronic `50:50` 融合”给出一对可直接复用的结构化请求/响应样例；同时在 [tests/test_test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py:86) 加了 smoke tests，确认这两个样例可解析，且输出样例覆盖 `output_schema` 的必填顶层字段、`risk_check` 的 `PASS/WARN/BLOCK` 合同和 `fusion_notes`。
-
-README 也同步补了这次更新记录和 JSON 入口说明，见 [README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:35)、[README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:430)、[README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:601)；示例总览页也加了 JSON 样例入口，见 [examples.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/examples.md:1)。这样改的原因很直接：仓库之前已经声明支持 `output_format: 'json'`，但没有现成 payload，结构化接入需要靠猜，属于真实的开箱即用缺口。
-
-验证已跑并通过：`python3 -m unittest discover -s tests`、`python3 test_runner.py --no-write-report`、`python3 -m py_compile test_runner.py tests/test_test_runner.py`，以及对两个新 JSON 文件的解析检查。未提交，未推送。
-
-### 2026-05-06
-
-这次只做了一项高置信度改进：把仓库里“声明支持 JSON 模式”这件事补到真正可复制。之前 README 和 `schemas/*.json` 说明了 `output_format: 'json'`，但仓库没有一对现成的结构化输入 / 输出样例，`input_schema` 也没有任何基础回归覆盖；对接的人需要自己猜第一份 payload 长什么样。我新增了 [schemas/input_example.json](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/input_example.json) 和 [schemas/output_example.json](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/output_example.json)，用仓库已经主推的 v1.1 场景“方文山人格 × electronic `50:50` 融合”做了一对可直接复用的 JSON 样例。
-
-对应的 smoke test 我补到了 [tests/test_test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py)，现在会确认这两个 example 文件可解析，并且关键字段与 [schemas/output_schema.json](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/output_schema.json) 的必填顶层字段、`risk_check` tri-state、`fusion_notes` 合同保持一致。README、`README-GITHUB.md` 和 `examples.md` 也同步加了入口说明。
-
-验证已跑并通过：
-- `python3 -m unittest discover -s tests`
-- `python3 test_runner.py --no-write-report`
-- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
-- `python3 -c "import json, pathlib; [json.loads(pathlib.Path(p).read_text(encoding='utf-8')) for p in ['schemas/input_example.json', 'schemas/output_example.json']]"`
-
-未提交，未推送。
-
-### 2026-05-05 09:35
-
-这次只做了一项高置信度改进：修正结构化输出 schema 和仓库文档之间的真实不一致。之前 `schemas/output_schema.json` 会把 `risk_check.overall: "WARN"` 判成非法，因为它错误地要求未文档化的 `WARN_WITH_REWRITES`；但 README、`test_runner.py` 和示例一直都在用 `PASS / WARN / BLOCK`。我把这个合同统一到了 [schemas/output_schema.json](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/output_schema.json:180)，并补了一个回归测试锁定它，见 [tests/test_test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py:76)。主 README 也同步更新了本次变更记录和 JSON 用法说明，见 [README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:35)、[README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:404)、[README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:571)。
-
-验证已跑并通过：
-- `python3 -m unittest discover -s tests`
-- `python3 test_runner.py --no-write-report`
-- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
-- `python3 -c "import json, pathlib; json.loads(pathlib.Path('schemas/output_schema.json').read_text(encoding='utf-8'))"`
-
-未提交，未推送。
-
-### 2026-05-05
-
-- 修复 `schemas/output_schema.json` 的结构化输出合同不一致：`risk_check.overall` 现在与 README、`test_runner.py` 和示例保持一致，统一使用 `PASS` / `WARN` / `BLOCK`，不再要求未文档化的 `WARN_WITH_REWRITES`。
-- 新增 `tests/test_test_runner.py` 回归测试，锁定这个 schema 枚举，避免结构化 JSON 输出再次和文档 / 示例漂移。
-
-### 2026-05-04 09:45
-
-修了一个高置信度的测试误判：[test_runner.py](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:196>) 和 [test_runner.py](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:271>) 现在在 `test_01` 里只统计第 6 段 `示例句` / `原创示例句` 标记后的列表项，不再把“主题定位 / 意象库 / 押韵策略”这类普通 bullet 误算成“歌词示例句”。之前这是个真实的假阳性缺口：没有真正例句的输出也可能被判通过。
-
-回归测试补在 [tests/test_test_runner.py](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py:83>)，覆盖了“只有元数据 bullets 应该 `WARN`”和“显式示例句列表应该 `PASS`”两个场景。README 和测试说明也同步了这次变化，见 [README.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:35>)、[README.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:543>)、[test_runner.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md:33>)，`README-GITHUB.md` 也做了同步。
-
-验证跑了：
-- `python3 -m unittest discover -s tests`，10 个单测全部通过
-- `python3 test_runner.py --no-write-report`，6 个回归用例、18 个检查全部通过
-- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
-- 定向构造“第 6 段只有元数据 bullets、没有示例句”的输出后，脚本现在返回 1 条预期 `WARN`、0 个失败
-
-未提交，未推送。
-
-### 2026-05-04
-
-- 修复 `test_runner.py` 对 `test_01` “歌词示例句” 的假阳性：现在只统计第 6 段里 `示例句` / `原创示例句` 标记后的列表项，不会再把主题定位、意象库这类普通 bullet 误算成示例句。
-- 新增 `tests/test_test_runner.py` 回归测试覆盖“只有元数据 bullets”与“显式示例句列表”两个场景，并同步更新主 README、`README-GITHUB.md` 和 `test_runner.md` 的说明。
-
-### 2026-05-03 09:38
-
-本次只做了一项高置信度改进：修复了 `test_runner.py` 在 `--output-dir` 模式下的一个稳定性边界。之前如果输出目录里某个 `test_01.md` 同名路径其实是目录，脚本会在读取时直接抛 traceback；现在它会在 [test_runner.py](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:373>) 记录一条 `生成结果` 的 `WARN` 并继续处理其他用例。对应回归测试补在 [tests/test_test_runner.py](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py:163>)。README 也已同步更新到 [README.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:35>)、[README.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:549>)、[README-GITHUB.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md:35>) 和 [test_runner.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md:68>)，让这次修复和用法说明保持一致。
-
-验证已跑：
-- `python3 test_runner.py --no-write-report`
-- `python3 -m unittest discover -s tests`
-- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
-- `tmp_dir=$(mktemp -d) && mkdir "$tmp_dir/test_01.md" && python3 test_runner.py --test test_01.md --output-dir "$tmp_dir" --no-write-report`
-
-结果是回归套件 6 个用例全部通过，单测 8 个全部通过，定向场景返回 1 条预期 `WARN`、0 个失败，不再抛 traceback。未提交，未推送。
-
-### 2026-05-03
-
-这次只做了一件高置信度的小修复：补上 `test_runner.py` 在 `--output-dir` 模式下的一个脚本稳定性边界。之前如果 `generated_outputs/test_01.md` 这类路径存在、但它其实是一个目录而不是 markdown 文件，脚本会在读取时直接抛 traceback，中断整个批量校验。我在 [test_runner.py](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py) 把这个分支改成了显式类型检查：同名路径不是文件时，只记一条 `生成结果` 的 `WARN`，继续跑其他用例。
-
-这类问题很适合无人值守自动修：它是一个真实的开发体验缺口，改动面小，不影响已有回归规则，只把“目录误放到输出目录里”从崩脚本降级成清晰报告。对应回归测试已补到 [tests/test_test_runner.py](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py)，测试说明同步更新到了主 README、[README-GITHUB.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md:35>) 和 [test_runner.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md:69>)。
-
-验证跑了：
-- `python3 test_runner.py --no-write-report`
-- `python3 -m unittest discover -s tests`
-- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
-- `tmp_dir=$(mktemp -d) && mkdir "$tmp_dir/test_01.md" && python3 test_runner.py --test test_01.md --output-dir "$tmp_dir" --no-write-report`
-
-结果是回归套件 6 个用例全部通过，单测现在是 8 个全部通过，定向的 `--output-dir` 目录误传场景会产出 `WARN` 而不是 traceback。未提交，未推送。
-
-### 2026-05-02 13:22
-
-这次只做了一件小而完整的改进：补上了 v1.1 主功能的端到端完整示例。之前仓库已经在 [SKILL.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/SKILL.md:164>)、[README.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:382>) 和 `test_06` 里强调“词人人格 + 跨风格融合”，但 [examples.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/examples.md:1>) 还缺一份可直接照抄的完整案例。我在 [examples.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/examples.md:388>) 新增了一个完整的 Example 4，演示“方文山人格 × Electronic 50:50”，包含 `[JC]` / `[F]` / `[MIX]` 来源标记和 `Fusion Notes`，并把旧的局部优化示例顺延为 Example 5/6。相关引用也同步更新到了 [README.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:35>)、[README-GITHUB.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md:35>) 和 [SKILL.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/SKILL.md:164>)。
-
-验证跑了：
-- `python3 test_runner.py --no-write-report`
-- `python3 -m unittest discover -s tests`
-- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
-
-结果是回归套件 6 个用例全部通过，单测 7 个全部通过。未提交，未推送。
-
-### 2026-05-02
-
-这次只做了一件高置信度补强：给 [examples.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/examples.md) 补上了一份完整的 v1.1 联动示例，直接演示“方文山系词人人格 + 周杰伦 × electronic 50:50 融合 + `[JC]` / `[F]` / `[MIX]` 来源标记 + `Fusion Notes`”的端到端输出。之前 README、[SKILL.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/SKILL.md) 和 [test_cases/test_06.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_cases/test_06.md) 都已经把这组能力当成主功能，但示例文件还停留在旧的 3 个完整案例，用户缺少一份可以直接照抄的完整输入与参考产出。
-
-我同步更新了 `examples.md` 的示例结构说明、`SKILL.md` 对示例数量的引用，以及主 README / `README-GITHUB.md` 的使用说明，明确现在可以直接查看 `examples.md` 的 Example 4 来触发 v1.1 能力。
-
-验证跑了这些：
-- `python3 test_runner.py --no-write-report`
-- `python3 -m unittest discover -s tests`
-- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
-
-结果是现有回归脚本和单测都仍然通过。未提交，未推送。
-
-### 2026-04-30 09:52
-
-这次只做了一件高置信度改进：把仓库主打的 v1.1 能力“词人人格 + 跨风格融合”补进了回归链。之前回归只覆盖 `test_01`–`test_05`，但 README 和 Skill 已经把这两个功能当成主卖点，存在明显测试缺口。我新增了 [test_cases/test_06.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_cases/test_06.md)，并扩展了 [test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py) 去检查 `50:50` 融合比例、`[JC]/[F]/[MIX]` 来源标记和 `融合说明`；对应单测补在了 [tests/test_test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py)。主 README 以及测试说明 [README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md)、[README-GITHUB.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md)、[test_runner.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md) 也同步更新了这次变化。
-
-我没有改 Skill 生成逻辑本身，因为当前最适合安全自动落地的真实问题就是“功能已宣传，但缺少可执行回归覆盖”。这样改动小、风险低，而且能直接提升后续维护的稳定性。
-
-验证跑了这些：
-- `python3 test_runner.py --no-write-report`
-- `python3 test_runner.py --test test_06.md --no-write-report`
-- `python3 -m unittest discover -s tests`
-- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
-
-结果是回归套件现在为 6 个用例、18 个检查全部通过；单测 7 个全部通过。未提交，未推送。
-
-### 2026-04-30 10:05
-
-- 为 v1.1 主功能补上新的回归场景 `test_cases/test_06.md`，覆盖“词人人格 + 跨风格融合”联动，不再只测基础 10 段、冷启动和拒绝分支。
-- `test_runner.py` 现在会对这类输出额外检查：是否明确写出 `50:50` 融合比例、是否出现 `[JC]` / `[F]` / `[MIX]` 来源标记、是否补了 `融合说明`。
-- `tests/test_test_runner.py` 新增回归测试，`test_runner.md` 与主 README 也同步补充了 `test_06` 的说明，方便直接验证 v1.1 特性有没有退化。
-
-### 2026-04-29 09:37
-
-**改动**
-
-修了一个高置信度的测试器逻辑问题：`test_runner.py` 之前会先无条件跑通用的 10 段校验，导致 `test_02` 的“1–2 个澄清问题”响应和 `test_05` 的首轮冷启动提问被误判为失败。现在 [test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:251) 会按用例分支决定是否执行通用 10 段检查，并在 [test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:259) 把 `test_02` 的“默认主题说明”分支也收紧到和用例文档一致。对应回归测试加在了 [tests/test_test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py:50)。
-
-README 和测试说明也同步了这次修复，让用户能直接看到最新行为：[README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:35)、[README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:448)、[test_runner.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md:25)、[README-GITHUB.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md:35)。
-
-**验证**
-
-运行了这些命令：
-
-- `python3 test_runner.py --no-write-report`
-- `python3 -m unittest discover -s tests`
-- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
-
-另外手工回归了两种最小输入，确认 `test_02` 和 `test_05` 的提问型合法输出现在分别得到 `PASS`，不再附带 10 段相关误判。未提交，未推送。
-
-### 2026-04-29 09:33
-
-- 修复 `test_runner.py` 的冷启动分支校验：`test_02` 的“1–2 个澄清问题”响应，以及 `test_05` 的首轮冷启动提问，不再先被通用的 10 段 / Similarity Guard / 去相似化检查误判为失败。
-- 新增 `tests/test_test_runner.py` 回归测试覆盖这两个场景，并同步更新主 README、`README-GITHUB.md` 和 `test_runner.md` 的测试说明。
-
-### 2026-04-28 16:14
-
-修了一个高置信度的 CLI 稳定性问题：`test_runner.py` 之前对 `--test`、`--output`、`--output-dir` 都做了路径校验，但 `--report-file` 还没有。父目录不存在，或把它指到目录时，会在最后写报告阶段直接抛 traceback。现在 [test_runner.py](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:123) 新增了 `resolve_report_file_path()`，并在 [test_runner.py](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:382) 写入前统一校验，同时把其余 `OSError` 也转成清晰的 CLI 退出。对应回归测试加在了 [tests/test_test_runner.py](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py:1)。
-
-README 也同步了这次变化：主 [README.md](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:35) 增加了更新记录，并在 [README.md](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:457) 补了 `--report-file` 的用法；[test_runner.md](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md:21) 和 [README-GITHUB.md](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md:35) 也做了同步说明。
-
-验证跑了：
-- `python3 test_runner.py --no-write-report`
-- `python3 -m unittest discover -s tests`
-- `python3 -m py_compile test_runner.py`
-- `python3 test_runner.py --report-file ./does-not-exist-dir/test-report.md`
-- `python3 test_runner.py --report-file .`
-
-结果是常规回归仍然通过，两个错误的 `--report-file` 场景现在都会直接返回清晰 CLI 错误。未提交，未推送。
-
-### 2026-04-28 16:18
-
-这次只做了一项高置信度改进：补上 `test_runner.py` 对 `--report-file` 的路径校验。之前如果把报告输出到不存在的父目录，或者把 `--report-file` 指到一个目录，脚本会在最后 `write_text()` 时直接抛 Python traceback。现在它会先返回清晰的 CLI 错误；其余报告写入失败也会转换成受控退出。对应回归测试已补到 `tests/test_test_runner.py`。
-
-原因很直接：`--test`、`--output`、`--output-dir` 之前都已经做了参数路径校验，唯独 `--report-file` 还留着同类缺口，属于明显的 CLI 一致性问题。现在报告输出路径的行为终于和其他参数对齐了。
-
-验证我跑了：
-- `python3 test_runner.py --no-write-report`
-- `python3 -m unittest discover -s tests`
-- `python3 -m py_compile test_runner.py`
-- `python3 test_runner.py --report-file ./does-not-exist-dir/test-report.md`
-- `python3 test_runner.py --report-file .`
-
-结果是正常回归仍然通过，两个错误的 `--report-file` 场景现在都会直接返回清晰 CLI 错误，不再抛 traceback。未提交，未推送。
-
-### 2026-04-27 09:36
-
-这次只做了一项高置信度改进：修复 `test_runner.py` 在 `--test` 传错文件名时会直接抛 `FileNotFoundError` traceback 的问题。现在它和 `--output` / `--output-dir` 一样，会先做统一的路径与类型校验，错误时直接返回清晰的 CLI 消息。实现见 [test_runner.py](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:138>)。我也把这次修复同步写进了主 README 的更新记录和验证说明 [README.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:35>)、[README.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:408>)，并更新了测试说明 [test_runner.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md:15>)。
-
-原因很直接：这是一个真实的开发体验问题，用户只要把 `--test` 写错就会看到 Python traceback，不符合这个脚本前面已经补齐过的 CLI 稳定性标准。现在错误场景会输出 `--test file not found: ...` 这类可直接理解的提示。
-
-验证我跑了：
-- `python3 test_runner.py --no-write-report`
-- `python3 -m py_compile test_runner.py`
-- `python3 test_runner.py --test does-not-exist.md --no-write-report`
-- `python3 test_runner.py --test test_04.md --no-write-report`
-
-结果是正常回归仍然通过，错误的 `--test` 参数现在不再抛 traceback。未提交，未推送。
-
-### 2026-04-27 09:34
-
-修了一处同类但之前漏掉的 CLI 稳定性问题：`test_runner.py` 在 `--test` 传错文件名时，之前会直接抛 `FileNotFoundError` traceback，不像 `--output` / `--output-dir` 那样给出清晰的命令行错误。我在 [test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:141) 补了统一的 `--test` 路径解析与类型校验，现在文件不存在或传到目录时都会直接报明确错误。相关约束也同步写进了主 README 和测试说明文档：[README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:31)、[README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:403)、[test_runner.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md:13)。
-
-跑过的验证：
-- `python3 test_runner.py --no-write-report`
-- `python3 -m py_compile test_runner.py`
-- `python3 test_runner.py --test does-not-exist.md --no-write-report`
-- `python3 test_runner.py --test test_04.md --no-write-report`
-
-结果是正常回归仍然通过，错误的 `--test` 参数现在会直接返回清晰 CLI 错误，不再抛 traceback。未提交，未推送。
-
-### 2026-04-26 09:35
-
-修了一处高置信度的脚本稳定性问题：`test_runner.py` 在参数路径写错时，之前要么直接抛 Python traceback，要么给出带 `WARN` 但整体 `PASS` 的误导性报告。我在 [test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:70) 加了统一的 CLI 路径校验，现在会对 `--output` 和 `--output-dir` 做存在性与类型检查，错误时直接用清晰消息退出。相关说明也同步写进了主 README 和测试说明文档：[README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:35)、[README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:384)、[test_runner.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md:17)。
-
-跑过的验证：
-- `python3 test_runner.py --no-write-report`
-- `python3 -m py_compile test_runner.py`
-- `python3 test_runner.py --test test_04.md --output ./does-not-exist.md --no-write-report`
-- `python3 test_runner.py --output-dir ./does-not-exist-dir --no-write-report`
-
-结果是正常回归仍然通过，两个错误场景现在都会返回明确的 CLI 错误，不再出现 traceback 或误导性报告。未提交，未推送。
-
-### 2026-04-26 09:33
-
-- `test_runner.py` 现在会在 `--output` 指向不存在/非文件路径，或 `--output-dir` 指向不存在/非目录路径时直接报错退出，避免抛 Python traceback 或产出误导性的报告。
-- 主 README、`README-GITHUB.md` 和 `test_runner.md` 已同步补充路径要求：`--output` 需要配合单个 `--test` 和一个已存在的 markdown 文件，`--output-dir` 需要是已存在目录。
-
-### 2026-04-25 11:06
-
-本次只做了一项高置信度改进：修复“验证文档和真实脚本行为不一致”的问题。
-
-我重写了 [test_runner.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md:1>)，把 `test_runner.py` 的真实能力写清楚：它会校验 `test_cases/` 结构，并可用 `--output` / `--output-dir` 校验你已经保存的 markdown 输出；它不会自动调用 Skill，也不会自动跑 JSON Schema、LUFS 或音乐统计。然后我把这个说明同步到主 README 的更新记录和验证章节 [README.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:35>)、[README.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:350>)，并同步到 [README-GITHUB.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md:35>)。
-
-这样改的原因很直接：原文档把 `test_runner.py` 说成会“自动触发 Skill 生成输出、做 JSON Schema 和指标校验”，但仓库里的实际实现并不是这样，属于明显的开箱即用问题。现在 README、`test_runner.md`、`schemas/*.json` 和脚本职责的关系已经对齐。
-
-验证我跑了两项：
-- `python3 test_runner.py --no-write-report`，结果是 5 个回归用例全部通过，15 个检查通过，0 warning，0 fail。
-- `python3 -m py_compile test_runner.py`
-
-未提交，未推送。
-
-### 2026-04-25 11:03
-
-- 修正文档中对 `test_runner.py` 的夸大描述：它现在被明确说明为“回归套件校验 + 已保存输出校验”工具，而不是自动调用 Skill 或自动跑 JSON Schema / LUFS 指标的脚本。
-- README 与 `test_runner.md` 同步补充了 `--test`、`--output`、`--output-dir` 的真实用法，以及批量校验时需要使用 `test_01.md` 这类文件命名。
-- 补充说明 `schemas/*.json` 目前是结构化集成参考，不属于 `test_runner.py` 的自动执行范围，避免 README、schema、脚本三者语义错位。
-
-### 2026-04-23 22:20
-
-- 补上缺失的 `test_runner.py`，现在仓库可以直接校验 `test_cases/` 套件完整性，并支持对传入的生成结果做 10 段结构、Similarity Guard、冷启动规则检查。
-- README 同步补充了真实可执行的验证方式，避免出现“文档写了 `python3 test_runner.py`，仓库里却没有脚本”的断层。
-- 安装命令已改成当前仓库的真实 GitHub 地址，方便直接复制安装。
-
-<!-- github-autopilot:updates:end -->
-
 ### 📊 基于真实数据，不是凭空想象
 
 我们分析了 **148 首**周杰伦作品的音频报告（2000《Jay》→ 现在），提取了：
@@ -984,3 +567,420 @@ Intro 平均 4 小节，Outro 平均 8 小节。
 ```
 
 **下一个周杰伦，就是你。** 🎸✨
+
+## 附录：自动更新记录
+
+<!-- github-autopilot:updates:start -->
+
+### 2026-05-22 09:39
+
+这次只做了一项高置信度改进：收紧结构化 JSON 合同，并补齐内建 schema 校验器对这类合同的真实执行。问题在于仓库原先会放过明显无效的 payload，比如 `emotion: {}`、缺少 `text` 的 `sample_lines[]`，以及缺少字段的 `de_similarization.actions[]`；更底层一点，[test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:295) 的内建 validator 只在 schema 显式写了 `type: object` 时才处理 `required`，导致 `anyOf` 里的 `required` 约束实际上可能失效。我把这个问题收口在 [schemas/input_schema.json](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/input_schema.json:11)、[schemas/output_schema.json](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/output_schema.json:128) 和 [test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:295) 里：现在 `emotion` 至少要给 `start` 或 `end`，每条歌词示例必须同时带 `section` 和 `text`，每条去相似化动作必须同时带 `target_section`、`issue` 和 `rewrite`。
+
+对应地，我在 [tests/test_test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py:160) 补了 5 条回归测试，覆盖空输入、空 `emotion`、残缺 `sample_lines[]` 和残缺 `actions[]`；主说明也同步写进了 [README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:35) 和 `README-GITHUB.md`，让用户直接能看到这次结构化合同收紧了什么。
+
+验证已跑并通过：`python3 -m unittest discover -s tests`、`python3 test_runner.py --no-write-report`、`python3 test_runner.py --no-write-report --validate-structured-examples`、`python3 -m py_compile test_runner.py tests/test_test_runner.py`。未提交，未推送。
+
+### 2026-05-22
+
+收紧了一处真实存在的结构化 JSON 合同漏洞：之前 [`schemas/input_schema.json`](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/input_schema.json) 会把 `emotion: {}` 这种空对象当成合法输入；[`schemas/output_schema.json`](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/output_schema.json) 也会放过缺少 `text` 的 `sample_lines[]`，以及缺少 `target_section` / `issue` / `rewrite` 的 `de_similarization.actions[]`。这会让仓库宣称可机器消费的结构化样例，实际上允许落成半残对象，接入方还得自己补二次防守。
+
+这次只做了一件小而完整的事：把这些嵌套字段收紧到文档本来就在表达的最低可用合同。现在 `emotion` 至少要提供 `start` 或 `end`；每条歌词示例必须同时带 `section` 和 `text`；每条去相似化动作必须同时带 `target_section`、`issue` 和 `rewrite`。对应回归测试已经补到 [`tests/test_test_runner.py`](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py)，现有 [`schemas/input_example.json`](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/input_example.json) 和 [`schemas/output_example.json`](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/output_example.json) 无需改动即可继续通过。
+
+已跑验证：`python3 -m unittest discover -s tests`、`python3 test_runner.py --no-write-report`、`python3 test_runner.py --no-write-report --validate-structured-examples`、`python3 -m py_compile test_runner.py tests/test_test_runner.py`，均通过。未提交，未推送。
+
+### 2026-05-21 10:06
+
+修了一个高置信度的 CLI 体验问题：[`test_runner.py`](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py) 的 `--test` 现在除了继续支持 `test_04.md` 这种短文件名和绝对路径，也支持 `./test_cases/test_04.md`、`test_cases/test_04.md` 这类 repo 相对路径。之前这两种自然写法会被错误拼成双层 `test_cases/...`，直接报 `--test file not found`。我在 [`tests/test_test_runner.py`](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py) 补了两条回归测试，并把 [`README.md`](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md)、[`README-GITHUB.md`](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md) 和 [`test_runner.md`](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md) 的用法说明同步更新了。
+
+已跑验证：`python3 -m unittest discover -s tests`、`python3 test_runner.py --no-write-report`、`python3 test_runner.py --no-write-report --validate-structured-examples`、`python3 test_runner.py --test ./test_cases/test_04.md --no-write-report`、`python3 -m py_compile test_runner.py tests/test_test_runner.py`，均通过。未提交，未推送。仓库里原本已有 `__pycache__` 的脏工作区变更，我没有动它们。
+
+### 2026-05-21 10:04
+
+这次只做了一项高置信度的开发体验修复：补齐了 [test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py) 对 `--test` 相对路径的支持。之前它只接受 `test_04.md` 这类短文件名或绝对路径；如果用户很自然地传 `./test_cases/test_04.md` 或 `test_cases/test_04.md`，脚本会把路径错误地再拼到 `test_cases/` 下面，导致误报 `--test file not found`。现在它会依次兼容“当前工作目录相对路径、仓库根目录相对路径、`test_cases/` 下短文件名”三种写法，CLI 行为和用户直觉终于对齐。
+
+对应地，我在 [tests/test_test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py) 补了两条回归测试，分别锁定“从仓库根目录传 `./test_cases/...`”和“从仓库外目录传 `test_cases/...`”两种调用方式；[README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md)、[README-GITHUB.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md) 和 [test_runner.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md) 也同步更新了 `--test` 的真实用法。
+
+验证已跑：
+- `python3 -m unittest discover -s tests`
+- `python3 test_runner.py --no-write-report`
+- `python3 test_runner.py --no-write-report --validate-structured-examples`
+- `python3 test_runner.py --test ./test_cases/test_04.md --no-write-report`
+- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
+
+未提交，未推送。
+
+### 2026-05-19 15:42
+
+这次只做了一项高置信度补强：收紧了 [test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py) 对 `test_04` 的安全回归。此前 `test_cases/test_04.md` 明确要求第 9 段必须显式给出“和声相似度”和“Hook 相似度”的结论，但脚本实际上只检查“第 9 段里有没有任意 `PASS/WARN/BLOCK`”，会放过只写总体结论的输出。现在它会要求这两个子项各自显式给出 `PASS` 或 `BLOCK`，缺任一项就失败。
+
+我同时在 [tests/test_test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py) 补了两条回归测试，覆盖“子项齐全通过”和“只写总体结论失败”；并把 [README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md)、[README-GITHUB.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md) 和 [test_runner.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md) 同步到了这条新规则。
+
+验证已跑：
+- `python3 -m unittest discover -s tests`
+- `python3 test_runner.py --no-write-report`
+- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
+
+结果：`22` 个单测通过，回归套件结构检查仍为 `PASS`。未提交，未推送。
+
+### 2026-05-19
+
+这次只做了一项高置信度补强：把 [test_cases/test_04.md](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_cases/test_04.md:1) 里原本写明、但 [test_runner.py](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:1) 之前没有真正执行的安全合同补进自动校验。该用例要求第 9 段必须显式给出“和声相似度”和“Hook 相似度”的结论，避免模型只写一个笼统的 `PASS` 就误判通过；现在脚本会要求这两个子项各自带 `PASS` 或 `BLOCK`，缺任何一个都会直接失败。
+
+对应地，我把 [tests/test_test_runner.py](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py:1) 补了两条回归测试，覆盖“两个子项都写明时通过”和“只写总体结论时失败”两种场景；[README.md](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:1)、[README-GITHUB.md](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md:1) 和 [test_runner.md](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md:1) 也同步更新了这条规则。
+
+已跑验证：
+- `python3 -m unittest discover -s tests`
+- `python3 test_runner.py --no-write-report`
+- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
+
+未提交，未推送。
+
+### 2026-05-17 09:39
+
+这次只做了一件小而完整的事：给 [test_runner.py](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:109) 增加了 `--validate-structured-examples`，用于校验仓库自带的 [schemas/input_example.json](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/input_example.json:1) 和 [schemas/output_example.json](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/output_example.json:1) 是否仍然符合对应 schema。原因是仓库之前只有“能解析 + 少量字段”的 smoke test，不能真正拦截 example 和 schema 漂移；现在内建了一套不依赖第三方库的 JSON Schema 子集校验，并且在报告里追加 `Structured JSON Examples` 小节，失败时会返回非零退出码。
+
+对应地，我把 [tests/test_test_runner.py](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py:109) 补成了合同测试，覆盖“示例通过”、“缺失必填字段”和“非法枚举值”三种场景；[README.md](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:32)、[README-GITHUB.md](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md:32) 和 [test_runner.md](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md:1) 也同步写明了这个新入口和能力边界。
+
+已跑验证：
+- `python3 -m unittest discover -s tests`
+- `python3 test_runner.py --no-write-report`
+- `python3 test_runner.py --no-write-report --validate-structured-examples`
+- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
+
+未提交，未推送。
+
+### 2026-05-17
+
+这次只做了一项高置信度改进：给 [test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py) 新增了 `--validate-structured-examples`。仓库之前虽然已经提供 [schemas/input_schema.json](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/input_schema.json)、[schemas/output_schema.json](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/output_schema.json) 以及对应的 JSON 示例，但自动化只做“能解析”和少量字段 smoke test，不能真正兜住“示例持续符合 schema 合同”这件事。现在脚本会在不引入第三方依赖的前提下，对仓库自带的输入/输出示例执行一套内建的 JSON Schema 子集校验。
+
+我同时把 [tests/test_test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py) 从 smoke test 补强成合同测试：不仅确认两份 example 文件通过，还覆盖“必填字段缺失”和“枚举值非法”这类真实漂移场景。主 [README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md)、[README-GITHUB.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md) 和 [test_runner.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md) 也同步写明：`test_runner.py` 仍然不会拿 markdown 输出去跑通用 JSON Schema，但现在可以显式校验仓库内置的结构化样例。
+
+验证已跑并通过：
+- `python3 -m unittest discover -s tests`
+- `python3 test_runner.py --no-write-report`
+- `python3 test_runner.py --no-write-report --validate-structured-examples`
+- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
+
+### 2026-05-12 09:35
+
+**改动**
+
+这次只做了一项高置信度修复：收紧了 [test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py) 的 `10 段模板` 校验。之前它只检查是否“出现过 1–10 这些编号”，但不会拦截两类真实错误：编号乱序，以及重复编号覆盖。这样像 `3/4` 写反、或者出现两个 `### 9.` 的输出，也可能被误判通过；而 [test_cases/test_01.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_cases/test_01.md) 明确要求“标题按顺序编号”。
+
+我把这个缺口补上了，并在 [tests/test_test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py) 增加了“乱序失败”和“重复编号失败”两条回归测试。同时同步更新了主 [README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md)、[README-GITHUB.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md) 和 [test_runner.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md)，让文档和实现保持同一套合同：完整方案场景下，编号必须完整、按顺序且不重复。
+
+**验证**
+
+已运行并通过：
+
+- `python3 -m unittest discover -s tests`
+- `python3 test_runner.py --no-write-report`
+- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
+
+未提交，未推送。
+
+### 2026-05-12 09:33
+
+补了一处 `10 段模板` 校验的真实自动化缺口。[test_runner.py](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py>) 现在不只检查有没有 `1–10` 这些编号，还会拦截**编号乱序**和**重复编号**的输出；之前只看章节集合是否齐全，像 `4` 和 `3` 写反、或重复写两个 `### 9.` 这种情况也可能误判通过，但 [test_cases/test_01.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_cases/test_01.md>) 明确要求“标题按顺序编号”。对应回归测试已补到 [tests/test_test_runner.py](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py>)，覆盖“乱序失败”和“重复编号失败”两种场景。
+
+README 和 [test_runner.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md>) 也同步写明：完整方案场景下，`10 段模板` 现在校验的是“完整、按顺序且不重复”的编号合同。这样用户从主 README 就能直接看到这次修复了什么。
+
+验证已跑：
+- `python3 -m unittest discover -s tests`
+- `python3 test_runner.py --no-write-report`
+- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
+
+### 2026-05-10 09:39
+
+补了一处 `test_02` 的真实自动化缺口。[test_runner.py](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py>) 现在在“默认主题说明 + 完整 10 段”分支里，会额外检查 5 个输入参数是否都在输出里留下明确证据：`轻 R&B`、`小调都市感`、`电钢铺底`、`副歌 Pad 扩张`、`城市夜景`。之前脚本只区分“澄清问题”还是“完整方案”，即使漏掉关键参数也可能误判通过。对应回归测试已补到 [tests/test_test_runner.py](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py>)，覆盖“参数齐全通过”和“缺参数失败”两种场景。
+
+README 已同步更新，见 [README.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md>)、[test_runner.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md>)、[README-GITHUB.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md>)。这样用户从主 README 就能直接看到这次新增的校验规则。
+
+验证已跑：
+- `python3 -m unittest discover -s tests`
+- `python3 test_runner.py --no-write-report`
+- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
+
+未提交，未推送。
+
+### 2026-05-10
+
+这次只做了一项高置信度改进：补上 [test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py) 对 `test_02` 完整方案分支的参数覆盖校验。之前脚本只区分“1–2 个澄清问题”还是“默认主题说明 + 完整 10 段”，但不会检查用户给的 5 个风格参数是否真的落到输出里；就算漏掉 `电钢铺底`、`副歌 Pad 扩张` 或 `城市夜景` 这类关键条件，也可能被误判为通过。现在它会在完整方案分支里聚合检查 `轻 R&B`、`小调都市感`、`电钢铺底`、`副歌 Pad 扩张`、`城市夜景` 这 5 项证据，缺项时直接列出缺失参数。
+
+对应回归测试已补到 [tests/test_test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py)，覆盖“5 项齐全应通过”和“缺参数应失败”两种场景；[test_runner.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md) 与 [README-GITHUB.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md) 也同步写明了这条规则。这样改的原因很直接：`test_cases/test_02.md` 早就把“5 个参数都要能在输出里找到证据”列成必须项，但脚本之前没有执行，属于真实的自动化缺口。
+
+验证已跑并通过：
+- `python3 -m unittest discover -s tests`
+- `python3 test_runner.py --no-write-report`
+- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
+
+### 2026-05-07 09:37
+
+这次只做了一项高置信度改进：修复融合模式里 `Fusion Notes` 的编号合同不一致。[test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py) 现在在继续要求 `1–10` 段完整的同时，也接受可选的 `### 11. 融合说明 / Fusion Notes`；之前这种写法会被误判成“10 段模板失败”。我同时在 [tests/test_test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py) 加了回归测试，并把 [schemas/output_schema.json](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/output_schema.json) 的 `fusion_notes` 描述改成和实际行为一致。
+
+README 也已同步更新：主 [README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md) 增加了本次更新记录，并补充说明 `fusion_notes` 对应的是第 10 段后的附加说明，若继续编号成第 11 段也合法；[test_runner.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md) 和 [README-GITHUB.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md) 也做了同样同步。这个改动的原因很直接：schema 之前暗示“融合说明是第 11 段”，但校验器不接受，属于真实的文档/校验合同漂移。
+
+已跑验证：
+- `python3 -m unittest discover -s tests`
+- `python3 test_runner.py --no-write-report`
+- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
+
+结果是单测 `14` 项全部通过，`test_runner.py` 基础回归 `6` 个用例、`18` 个检查全部通过。未提交，未推送。
+
+### 2026-05-07
+
+这次只做了一项高置信度改进：统一融合模式里 `Fusion Notes` 的编号合同。之前 `schemas/output_schema.json` 把 `fusion_notes` 描述成“11. 融合说明”，但 `test_runner.py` 对 markdown 完整输出仍只接受严格的 `1–10` 编号；如果有人把融合说明写成 `### 11. 融合说明 Fusion Notes`，会被误判成 10 段模板失败。现在校验器会继续要求 `1–10` 必填，但额外接受可选的编号 11 融合说明；对应回归测试已经补到 `tests/test_test_runner.py`，schema 和测试说明也同步改成同一套说法。
+
+验证已跑并通过：`python3 -m unittest discover -s tests`、`python3 test_runner.py --no-write-report`、`python3 -m py_compile test_runner.py tests/test_test_runner.py`。未提交，未推送。
+
+### 2026-05-06 09:38
+
+这次我只做了一项小而完整的改进：补齐 JSON 模式的开箱即用示例。新增了 [schemas/input_example.json](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/input_example.json:1) 和 [schemas/output_example.json](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/output_example.json:1)，用“方文山人格 × electronic `50:50` 融合”给出一对可直接复用的结构化请求/响应样例；同时在 [tests/test_test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py:86) 加了 smoke tests，确认这两个样例可解析，且输出样例覆盖 `output_schema` 的必填顶层字段、`risk_check` 的 `PASS/WARN/BLOCK` 合同和 `fusion_notes`。
+
+README 也同步补了这次更新记录和 JSON 入口说明，见 [README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:35)、[README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:430)、[README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:601)；示例总览页也加了 JSON 样例入口，见 [examples.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/examples.md:1)。这样改的原因很直接：仓库之前已经声明支持 `output_format: 'json'`，但没有现成 payload，结构化接入需要靠猜，属于真实的开箱即用缺口。
+
+验证已跑并通过：`python3 -m unittest discover -s tests`、`python3 test_runner.py --no-write-report`、`python3 -m py_compile test_runner.py tests/test_test_runner.py`，以及对两个新 JSON 文件的解析检查。未提交，未推送。
+
+### 2026-05-06
+
+这次只做了一项高置信度改进：把仓库里“声明支持 JSON 模式”这件事补到真正可复制。之前 README 和 `schemas/*.json` 说明了 `output_format: 'json'`，但仓库没有一对现成的结构化输入 / 输出样例，`input_schema` 也没有任何基础回归覆盖；对接的人需要自己猜第一份 payload 长什么样。我新增了 [schemas/input_example.json](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/input_example.json) 和 [schemas/output_example.json](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/output_example.json)，用仓库已经主推的 v1.1 场景“方文山人格 × electronic `50:50` 融合”做了一对可直接复用的 JSON 样例。
+
+对应的 smoke test 我补到了 [tests/test_test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py)，现在会确认这两个 example 文件可解析，并且关键字段与 [schemas/output_schema.json](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/output_schema.json) 的必填顶层字段、`risk_check` tri-state、`fusion_notes` 合同保持一致。README、`README-GITHUB.md` 和 `examples.md` 也同步加了入口说明。
+
+验证已跑并通过：
+- `python3 -m unittest discover -s tests`
+- `python3 test_runner.py --no-write-report`
+- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
+- `python3 -c "import json, pathlib; [json.loads(pathlib.Path(p).read_text(encoding='utf-8')) for p in ['schemas/input_example.json', 'schemas/output_example.json']]"`
+
+未提交，未推送。
+
+### 2026-05-05 09:35
+
+这次只做了一项高置信度改进：修正结构化输出 schema 和仓库文档之间的真实不一致。之前 `schemas/output_schema.json` 会把 `risk_check.overall: "WARN"` 判成非法，因为它错误地要求未文档化的 `WARN_WITH_REWRITES`；但 README、`test_runner.py` 和示例一直都在用 `PASS / WARN / BLOCK`。我把这个合同统一到了 [schemas/output_schema.json](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/output_schema.json:180)，并补了一个回归测试锁定它，见 [tests/test_test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py:76)。主 README 也同步更新了本次变更记录和 JSON 用法说明，见 [README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:35)、[README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:404)、[README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:571)。
+
+验证已跑并通过：
+- `python3 -m unittest discover -s tests`
+- `python3 test_runner.py --no-write-report`
+- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
+- `python3 -c "import json, pathlib; json.loads(pathlib.Path('schemas/output_schema.json').read_text(encoding='utf-8'))"`
+
+未提交，未推送。
+
+### 2026-05-05
+
+- 修复 `schemas/output_schema.json` 的结构化输出合同不一致：`risk_check.overall` 现在与 README、`test_runner.py` 和示例保持一致，统一使用 `PASS` / `WARN` / `BLOCK`，不再要求未文档化的 `WARN_WITH_REWRITES`。
+- 新增 `tests/test_test_runner.py` 回归测试，锁定这个 schema 枚举，避免结构化 JSON 输出再次和文档 / 示例漂移。
+
+### 2026-05-04 09:45
+
+修了一个高置信度的测试误判：[test_runner.py](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:196>) 和 [test_runner.py](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:271>) 现在在 `test_01` 里只统计第 6 段 `示例句` / `原创示例句` 标记后的列表项，不再把“主题定位 / 意象库 / 押韵策略”这类普通 bullet 误算成“歌词示例句”。之前这是个真实的假阳性缺口：没有真正例句的输出也可能被判通过。
+
+回归测试补在 [tests/test_test_runner.py](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py:83>)，覆盖了“只有元数据 bullets 应该 `WARN`”和“显式示例句列表应该 `PASS`”两个场景。README 和测试说明也同步了这次变化，见 [README.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:35>)、[README.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:543>)、[test_runner.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md:33>)，`README-GITHUB.md` 也做了同步。
+
+验证跑了：
+- `python3 -m unittest discover -s tests`，10 个单测全部通过
+- `python3 test_runner.py --no-write-report`，6 个回归用例、18 个检查全部通过
+- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
+- 定向构造“第 6 段只有元数据 bullets、没有示例句”的输出后，脚本现在返回 1 条预期 `WARN`、0 个失败
+
+未提交，未推送。
+
+### 2026-05-04
+
+- 修复 `test_runner.py` 对 `test_01` “歌词示例句” 的假阳性：现在只统计第 6 段里 `示例句` / `原创示例句` 标记后的列表项，不会再把主题定位、意象库这类普通 bullet 误算成示例句。
+- 新增 `tests/test_test_runner.py` 回归测试覆盖“只有元数据 bullets”与“显式示例句列表”两个场景，并同步更新主 README、`README-GITHUB.md` 和 `test_runner.md` 的说明。
+
+### 2026-05-03 09:38
+
+本次只做了一项高置信度改进：修复了 `test_runner.py` 在 `--output-dir` 模式下的一个稳定性边界。之前如果输出目录里某个 `test_01.md` 同名路径其实是目录，脚本会在读取时直接抛 traceback；现在它会在 [test_runner.py](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:373>) 记录一条 `生成结果` 的 `WARN` 并继续处理其他用例。对应回归测试补在 [tests/test_test_runner.py](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py:163>)。README 也已同步更新到 [README.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:35>)、[README.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:549>)、[README-GITHUB.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md:35>) 和 [test_runner.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md:68>)，让这次修复和用法说明保持一致。
+
+验证已跑：
+- `python3 test_runner.py --no-write-report`
+- `python3 -m unittest discover -s tests`
+- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
+- `tmp_dir=$(mktemp -d) && mkdir "$tmp_dir/test_01.md" && python3 test_runner.py --test test_01.md --output-dir "$tmp_dir" --no-write-report`
+
+结果是回归套件 6 个用例全部通过，单测 8 个全部通过，定向场景返回 1 条预期 `WARN`、0 个失败，不再抛 traceback。未提交，未推送。
+
+### 2026-05-03
+
+这次只做了一件高置信度的小修复：补上 `test_runner.py` 在 `--output-dir` 模式下的一个脚本稳定性边界。之前如果 `generated_outputs/test_01.md` 这类路径存在、但它其实是一个目录而不是 markdown 文件，脚本会在读取时直接抛 traceback，中断整个批量校验。我在 [test_runner.py](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py) 把这个分支改成了显式类型检查：同名路径不是文件时，只记一条 `生成结果` 的 `WARN`，继续跑其他用例。
+
+这类问题很适合无人值守自动修：它是一个真实的开发体验缺口，改动面小，不影响已有回归规则，只把“目录误放到输出目录里”从崩脚本降级成清晰报告。对应回归测试已补到 [tests/test_test_runner.py](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py)，测试说明同步更新到了主 README、[README-GITHUB.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md:35>) 和 [test_runner.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md:69>)。
+
+验证跑了：
+- `python3 test_runner.py --no-write-report`
+- `python3 -m unittest discover -s tests`
+- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
+- `tmp_dir=$(mktemp -d) && mkdir "$tmp_dir/test_01.md" && python3 test_runner.py --test test_01.md --output-dir "$tmp_dir" --no-write-report`
+
+结果是回归套件 6 个用例全部通过，单测现在是 8 个全部通过，定向的 `--output-dir` 目录误传场景会产出 `WARN` 而不是 traceback。未提交，未推送。
+
+### 2026-05-02 13:22
+
+这次只做了一件小而完整的改进：补上了 v1.1 主功能的端到端完整示例。之前仓库已经在 [SKILL.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/SKILL.md:164>)、[README.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:382>) 和 `test_06` 里强调“词人人格 + 跨风格融合”，但 [examples.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/examples.md:1>) 还缺一份可直接照抄的完整案例。我在 [examples.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/examples.md:388>) 新增了一个完整的 Example 4，演示“方文山人格 × Electronic 50:50”，包含 `[JC]` / `[F]` / `[MIX]` 来源标记和 `Fusion Notes`，并把旧的局部优化示例顺延为 Example 5/6。相关引用也同步更新到了 [README.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:35>)、[README-GITHUB.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md:35>) 和 [SKILL.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/SKILL.md:164>)。
+
+验证跑了：
+- `python3 test_runner.py --no-write-report`
+- `python3 -m unittest discover -s tests`
+- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
+
+结果是回归套件 6 个用例全部通过，单测 7 个全部通过。未提交，未推送。
+
+### 2026-05-02
+
+这次只做了一件高置信度补强：给 [examples.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/examples.md) 补上了一份完整的 v1.1 联动示例，直接演示“方文山系词人人格 + 周杰伦 × electronic 50:50 融合 + `[JC]` / `[F]` / `[MIX]` 来源标记 + `Fusion Notes`”的端到端输出。之前 README、[SKILL.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/SKILL.md) 和 [test_cases/test_06.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_cases/test_06.md) 都已经把这组能力当成主功能，但示例文件还停留在旧的 3 个完整案例，用户缺少一份可以直接照抄的完整输入与参考产出。
+
+我同步更新了 `examples.md` 的示例结构说明、`SKILL.md` 对示例数量的引用，以及主 README / `README-GITHUB.md` 的使用说明，明确现在可以直接查看 `examples.md` 的 Example 4 来触发 v1.1 能力。
+
+验证跑了这些：
+- `python3 test_runner.py --no-write-report`
+- `python3 -m unittest discover -s tests`
+- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
+
+结果是现有回归脚本和单测都仍然通过。未提交，未推送。
+
+### 2026-04-30 09:52
+
+这次只做了一件高置信度改进：把仓库主打的 v1.1 能力“词人人格 + 跨风格融合”补进了回归链。之前回归只覆盖 `test_01`–`test_05`，但 README 和 Skill 已经把这两个功能当成主卖点，存在明显测试缺口。我新增了 [test_cases/test_06.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_cases/test_06.md)，并扩展了 [test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py) 去检查 `50:50` 融合比例、`[JC]/[F]/[MIX]` 来源标记和 `融合说明`；对应单测补在了 [tests/test_test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py)。主 README 以及测试说明 [README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md)、[README-GITHUB.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md)、[test_runner.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md) 也同步更新了这次变化。
+
+我没有改 Skill 生成逻辑本身，因为当前最适合安全自动落地的真实问题就是“功能已宣传，但缺少可执行回归覆盖”。这样改动小、风险低，而且能直接提升后续维护的稳定性。
+
+验证跑了这些：
+- `python3 test_runner.py --no-write-report`
+- `python3 test_runner.py --test test_06.md --no-write-report`
+- `python3 -m unittest discover -s tests`
+- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
+
+结果是回归套件现在为 6 个用例、18 个检查全部通过；单测 7 个全部通过。未提交，未推送。
+
+### 2026-04-30 10:05
+
+- 为 v1.1 主功能补上新的回归场景 `test_cases/test_06.md`，覆盖“词人人格 + 跨风格融合”联动，不再只测基础 10 段、冷启动和拒绝分支。
+- `test_runner.py` 现在会对这类输出额外检查：是否明确写出 `50:50` 融合比例、是否出现 `[JC]` / `[F]` / `[MIX]` 来源标记、是否补了 `融合说明`。
+- `tests/test_test_runner.py` 新增回归测试，`test_runner.md` 与主 README 也同步补充了 `test_06` 的说明，方便直接验证 v1.1 特性有没有退化。
+
+### 2026-04-29 09:37
+
+**改动**
+
+修了一个高置信度的测试器逻辑问题：`test_runner.py` 之前会先无条件跑通用的 10 段校验，导致 `test_02` 的“1–2 个澄清问题”响应和 `test_05` 的首轮冷启动提问被误判为失败。现在 [test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:251) 会按用例分支决定是否执行通用 10 段检查，并在 [test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:259) 把 `test_02` 的“默认主题说明”分支也收紧到和用例文档一致。对应回归测试加在了 [tests/test_test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py:50)。
+
+README 和测试说明也同步了这次修复，让用户能直接看到最新行为：[README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:35)、[README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:448)、[test_runner.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md:25)、[README-GITHUB.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md:35)。
+
+**验证**
+
+运行了这些命令：
+
+- `python3 test_runner.py --no-write-report`
+- `python3 -m unittest discover -s tests`
+- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
+
+另外手工回归了两种最小输入，确认 `test_02` 和 `test_05` 的提问型合法输出现在分别得到 `PASS`，不再附带 10 段相关误判。未提交，未推送。
+
+### 2026-04-29 09:33
+
+- 修复 `test_runner.py` 的冷启动分支校验：`test_02` 的“1–2 个澄清问题”响应，以及 `test_05` 的首轮冷启动提问，不再先被通用的 10 段 / Similarity Guard / 去相似化检查误判为失败。
+- 新增 `tests/test_test_runner.py` 回归测试覆盖这两个场景，并同步更新主 README、`README-GITHUB.md` 和 `test_runner.md` 的测试说明。
+
+### 2026-04-28 16:14
+
+修了一个高置信度的 CLI 稳定性问题：`test_runner.py` 之前对 `--test`、`--output`、`--output-dir` 都做了路径校验，但 `--report-file` 还没有。父目录不存在，或把它指到目录时，会在最后写报告阶段直接抛 traceback。现在 [test_runner.py](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:123) 新增了 `resolve_report_file_path()`，并在 [test_runner.py](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:382) 写入前统一校验，同时把其余 `OSError` 也转成清晰的 CLI 退出。对应回归测试加在了 [tests/test_test_runner.py](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py:1)。
+
+README 也同步了这次变化：主 [README.md](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:35) 增加了更新记录，并在 [README.md](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:457) 补了 `--report-file` 的用法；[test_runner.md](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md:21) 和 [README-GITHUB.md](/Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md:35) 也做了同步说明。
+
+验证跑了：
+- `python3 test_runner.py --no-write-report`
+- `python3 -m unittest discover -s tests`
+- `python3 -m py_compile test_runner.py`
+- `python3 test_runner.py --report-file ./does-not-exist-dir/test-report.md`
+- `python3 test_runner.py --report-file .`
+
+结果是常规回归仍然通过，两个错误的 `--report-file` 场景现在都会直接返回清晰 CLI 错误。未提交，未推送。
+
+### 2026-04-28 16:18
+
+这次只做了一项高置信度改进：补上 `test_runner.py` 对 `--report-file` 的路径校验。之前如果把报告输出到不存在的父目录，或者把 `--report-file` 指到一个目录，脚本会在最后 `write_text()` 时直接抛 Python traceback。现在它会先返回清晰的 CLI 错误；其余报告写入失败也会转换成受控退出。对应回归测试已补到 `tests/test_test_runner.py`。
+
+原因很直接：`--test`、`--output`、`--output-dir` 之前都已经做了参数路径校验，唯独 `--report-file` 还留着同类缺口，属于明显的 CLI 一致性问题。现在报告输出路径的行为终于和其他参数对齐了。
+
+验证我跑了：
+- `python3 test_runner.py --no-write-report`
+- `python3 -m unittest discover -s tests`
+- `python3 -m py_compile test_runner.py`
+- `python3 test_runner.py --report-file ./does-not-exist-dir/test-report.md`
+- `python3 test_runner.py --report-file .`
+
+结果是正常回归仍然通过，两个错误的 `--report-file` 场景现在都会直接返回清晰 CLI 错误，不再抛 traceback。未提交，未推送。
+
+### 2026-04-27 09:36
+
+这次只做了一项高置信度改进：修复 `test_runner.py` 在 `--test` 传错文件名时会直接抛 `FileNotFoundError` traceback 的问题。现在它和 `--output` / `--output-dir` 一样，会先做统一的路径与类型校验，错误时直接返回清晰的 CLI 消息。实现见 [test_runner.py](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:138>)。我也把这次修复同步写进了主 README 的更新记录和验证说明 [README.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:35>)、[README.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:408>)，并更新了测试说明 [test_runner.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md:15>)。
+
+原因很直接：这是一个真实的开发体验问题，用户只要把 `--test` 写错就会看到 Python traceback，不符合这个脚本前面已经补齐过的 CLI 稳定性标准。现在错误场景会输出 `--test file not found: ...` 这类可直接理解的提示。
+
+验证我跑了：
+- `python3 test_runner.py --no-write-report`
+- `python3 -m py_compile test_runner.py`
+- `python3 test_runner.py --test does-not-exist.md --no-write-report`
+- `python3 test_runner.py --test test_04.md --no-write-report`
+
+结果是正常回归仍然通过，错误的 `--test` 参数现在不再抛 traceback。未提交，未推送。
+
+### 2026-04-27 09:34
+
+修了一处同类但之前漏掉的 CLI 稳定性问题：`test_runner.py` 在 `--test` 传错文件名时，之前会直接抛 `FileNotFoundError` traceback，不像 `--output` / `--output-dir` 那样给出清晰的命令行错误。我在 [test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:141) 补了统一的 `--test` 路径解析与类型校验，现在文件不存在或传到目录时都会直接报明确错误。相关约束也同步写进了主 README 和测试说明文档：[README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:31)、[README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:403)、[test_runner.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md:13)。
+
+跑过的验证：
+- `python3 test_runner.py --no-write-report`
+- `python3 -m py_compile test_runner.py`
+- `python3 test_runner.py --test does-not-exist.md --no-write-report`
+- `python3 test_runner.py --test test_04.md --no-write-report`
+
+结果是正常回归仍然通过，错误的 `--test` 参数现在会直接返回清晰 CLI 错误，不再抛 traceback。未提交，未推送。
+
+### 2026-04-26 09:35
+
+修了一处高置信度的脚本稳定性问题：`test_runner.py` 在参数路径写错时，之前要么直接抛 Python traceback，要么给出带 `WARN` 但整体 `PASS` 的误导性报告。我在 [test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:70) 加了统一的 CLI 路径校验，现在会对 `--output` 和 `--output-dir` 做存在性与类型检查，错误时直接用清晰消息退出。相关说明也同步写进了主 README 和测试说明文档：[README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:35)、[README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:384)、[test_runner.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md:17)。
+
+跑过的验证：
+- `python3 test_runner.py --no-write-report`
+- `python3 -m py_compile test_runner.py`
+- `python3 test_runner.py --test test_04.md --output ./does-not-exist.md --no-write-report`
+- `python3 test_runner.py --output-dir ./does-not-exist-dir --no-write-report`
+
+结果是正常回归仍然通过，两个错误场景现在都会返回明确的 CLI 错误，不再出现 traceback 或误导性报告。未提交，未推送。
+
+### 2026-04-26 09:33
+
+- `test_runner.py` 现在会在 `--output` 指向不存在/非文件路径，或 `--output-dir` 指向不存在/非目录路径时直接报错退出，避免抛 Python traceback 或产出误导性的报告。
+- 主 README、`README-GITHUB.md` 和 `test_runner.md` 已同步补充路径要求：`--output` 需要配合单个 `--test` 和一个已存在的 markdown 文件，`--output-dir` 需要是已存在目录。
+
+### 2026-04-25 11:06
+
+本次只做了一项高置信度改进：修复“验证文档和真实脚本行为不一致”的问题。
+
+我重写了 [test_runner.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md:1>)，把 `test_runner.py` 的真实能力写清楚：它会校验 `test_cases/` 结构，并可用 `--output` / `--output-dir` 校验你已经保存的 markdown 输出；它不会自动调用 Skill，也不会自动跑 JSON Schema、LUFS 或音乐统计。然后我把这个说明同步到主 README 的更新记录和验证章节 [README.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:35>)、[README.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:350>)，并同步到 [README-GITHUB.md](</Users/aimon/Desktop/claude code test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README-GITHUB.md:35>)。
+
+这样改的原因很直接：原文档把 `test_runner.py` 说成会“自动触发 Skill 生成输出、做 JSON Schema 和指标校验”，但仓库里的实际实现并不是这样，属于明显的开箱即用问题。现在 README、`test_runner.md`、`schemas/*.json` 和脚本职责的关系已经对齐。
+
+验证我跑了两项：
+- `python3 test_runner.py --no-write-report`，结果是 5 个回归用例全部通过，15 个检查通过，0 warning，0 fail。
+- `python3 -m py_compile test_runner.py`
+
+未提交，未推送。
+
+### 2026-04-25 11:03
+
+- 修正文档中对 `test_runner.py` 的夸大描述：它现在被明确说明为“回归套件校验 + 已保存输出校验”工具，而不是自动调用 Skill 或自动跑 JSON Schema / LUFS 指标的脚本。
+- README 与 `test_runner.md` 同步补充了 `--test`、`--output`、`--output-dir` 的真实用法，以及批量校验时需要使用 `test_01.md` 这类文件命名。
+- 补充说明 `schemas/*.json` 目前是结构化集成参考，不属于 `test_runner.py` 的自动执行范围，避免 README、schema、脚本三者语义错位。
+
+### 2026-04-23 22:20
+
+- 补上缺失的 `test_runner.py`，现在仓库可以直接校验 `test_cases/` 套件完整性，并支持对传入的生成结果做 10 段结构、Similarity Guard、冷启动规则检查。
+- README 同步补充了真实可执行的验证方式，避免出现“文档写了 `python3 test_runner.py`，仓库里却没有脚本”的断层。
+- 安装命令已改成当前仓库的真实 GitHub 地址，方便直接复制安装。
+
+<!-- github-autopilot:updates:end -->

@@ -28,110 +28,6 @@
 - **词人风格适配**：选择方文山（古典白描）、黄俊郎（超现实暗黑）、周杰伦自填词（口语直觉）三种词人人格，影响歌词的意象、句法、叙事和押韵
 - **跨风格融合**：将周杰伦风格与爵士/电子/拉丁/深度R&B/管弦乐/民谣/世界音乐/Trap 做有控制的融合，支持 90:10 到 30:70 的比例调节
 
-## Autopilot Updates
-
-<!-- github-autopilot:updates:start -->
-
-### 2026-05-22
-
-- 收紧结构化 JSON 的嵌套合同：`schemas/input_schema.json` 不再接受 `emotion: {}` 这种空对象；`schemas/output_schema.json` 现在要求每条 `lyric_direction.sample_lines[]` 同时包含 `section` 和 `text`，每条 `de_similarization.actions[]` 同时包含 `target_section`、`issue` 和 `rewrite`。
-- `tests/test_test_runner.py` 新增 3 条回归测试锁定这些场景；主 README 也同步补充了新的 JSON 使用约束，现有 `schemas/input_example.json` 与 `schemas/output_example.json` 保持兼容。
-
-### 2026-05-21
-
-- `test_runner.py` 的 `--test` 现在除了继续支持 `test_04.md` 这类短文件名和绝对路径，也支持 `./test_cases/test_04.md`、`test_cases/test_04.md` 这类 repo 相对路径，不会再把它们误拼成错误的双层 `test_cases/test_cases/...`。
-- `tests/test_test_runner.py` 新增两条回归测试，分别锁定“从仓库根目录传 `./test_cases/...`”和“从仓库外目录传 `test_cases/...`”这两种常见调用方式；主 README 与 `test_runner.md` 也已同步更新用法说明。
-
-### 2026-05-19
-
-- `test_runner.py` 现在会把 `test_04` 第 9 段里的 `和声相似度` 与 `Hook 相似度` 当成必检子项，要求它们各自显式给出 `PASS` 或 `BLOCK`，不再允许只写一个笼统的总体结论就误判通过。
-- `tests/test_test_runner.py` 新增通过 / 失败两组回归测试；主 README 和 `test_runner.md` 也同步补上这条安全回归规则。
-
-### 2026-05-17
-
-- `test_runner.py` 新增 `--validate-structured-examples`，可在不引入第三方依赖的前提下，对 `schemas/input_example.json` 和 `schemas/output_example.json` 执行内建 JSON Schema 子集校验。
-- `tests/test_test_runner.py` 已从“能解析 + 少量字段 smoke test”补强为结构化合同测试，覆盖示例通过、缺失必填字段和非法枚举值三类场景；主 README 与 `test_runner.md` 也同步写明了这个新入口和能力边界。
-
-### 2026-05-12
-
-- `test_runner.py` 现在会在完整方案场景下额外拦截两类以前会漏掉的编号问题：`1–10` 章节**乱序**，以及重复编号（例如两个 `### 9.`）。
-- `tests/test_test_runner.py` 已补上“乱序失败”和“重复编号失败”的回归测试；主 README 与 `test_runner.md` 也同步明确：`10 段模板` 检查的是“完整、按顺序且不重复”的编号合同。
-
-### 2026-05-10
-
-- `test_runner.py` 现在会在 `test_02` 的“默认主题说明 + 完整 10 段”分支里检查 5 个输入参数是否都有明确证据：`轻 R&B`、`小调都市感`、`电钢铺底`、`副歌 Pad 扩张`、`城市夜景`。
-- `tests/test_test_runner.py` 新增通过 / 失败两组回归测试；主 README 和 `test_runner.md` 也同步补上这条自动化规则，避免 `test_cases/test_02.md` 和脚本再漂移。
-
-### 2026-05-07
-
-- 统一融合模式的 `Fusion Notes` 编号合同：`test_runner.py` 现在在继续要求 `1–10` 段完整的同时，也接受可选的 `### 11. 融合说明 / Fusion Notes`，不再把它误判成模板失败。
-- `tests/test_test_runner.py` 新增回归测试锁定这个行为，`schemas/output_schema.json` 与 `test_runner.md` 也同步明确：`fusion_notes` 对应的是第 10 段后的附加说明，若继续编号，第 11 段同样合法。
-
-### 2026-05-06
-
-- 新增 `schemas/input_example.json` 和 `schemas/output_example.json`，补上一对可直接复制的结构化 JSON 示例，覆盖 v1.1 的“方文山人格 + electronic `50:50` 融合”场景。
-- 新增 `tests/test_test_runner.py` smoke tests，确保这两个 example 文件可解析，并且关键字段与 `schemas/output_schema.json` 的必填顶层字段、`risk_check` tri-state、`fusion_notes` 合同保持一致。
-
-### 2026-05-05
-
-- 修复 `schemas/output_schema.json` 的结构化输出合同不一致：`risk_check.overall` 现在与 README、`test_runner.py` 和示例保持一致，统一使用 `PASS` / `WARN` / `BLOCK`。
-- 新增 `tests/test_test_runner.py` 回归测试，锁定这个 schema 枚举，避免结构化 JSON 输出再次和文档漂移。
-
-### 2026-05-04
-
-- 修复 `test_runner.py` 对 `test_01` “歌词示例句” 的假阳性：现在只统计第 6 段里 `示例句` / `原创示例句` 标记后的列表项，不会再把主题定位、意象库这类普通 bullet 误算成示例句。
-- 新增 `tests/test_test_runner.py` 回归测试覆盖“只有元数据 bullets”与“显式示例句列表”两个场景，并同步更新主 README、`README-GITHUB.md` 和 `test_runner.md` 的说明。
-
-### 2026-05-03
-
-- 修复 `test_runner.py` 在 `--output-dir` 模式下的一个稳定性边界：如果 `generated_outputs/test_01.md` 这类同名路径其实是目录而不是 markdown 文件，脚本现在会给出 `生成结果` 的 `WARN`，而不是在读取时抛 traceback。
-- 新增 `tests/test_test_runner.py` 回归测试覆盖这个场景，并同步更新主 README、`README-GITHUB.md` 和 `test_runner.md` 的用法说明。
-
-### 2026-05-02
-
-- `examples.md` 新增完整的 Example 4，演示 v1.1 的“方文山系词人人格 + 周杰伦 × electronic `50:50` 融合 + `[JC]` / `[F]` / `[MIX]` 来源标记 + `Fusion Notes`”端到端输出。
-- `SKILL.md`、主 README 和 `README-GITHUB.md` 已同步把完整示例引用更新到 Example 4，用户现在可以直接照着这份案例触发 v1.1 功能。
-
-### 2026-04-30 10:05
-
-- 新增 `test_cases/test_06.md`，把 v1.1 的“词人人格 + 跨风格融合”联动场景纳入回归套件。
-- `test_runner.py` 现在会额外检查 `50:50` 融合比例、`[JC]` / `[F]` / `[MIX]` 来源标记，以及 `融合说明` / `Fusion Notes`。
-- `tests/test_test_runner.py`、主 README 和 `test_runner.md` 已同步补上这条回归说明。
-
-### 2026-04-29 09:33
-
-- 修复 `test_runner.py` 的冷启动分支校验：`test_02` 的“1–2 个澄清问题”响应，以及 `test_05` 的首轮冷启动提问，不再先被通用的 10 段 / Similarity Guard / 去相似化检查误判为失败。
-- 新增 `tests/test_test_runner.py` 回归测试覆盖这两个场景，并同步更新主 README、`README-GITHUB.md` 和 `test_runner.md` 的测试说明。
-
-### 2026-04-28 16:18
-
-- `test_runner.py` 现在会对 `--report-file` 做和 `--test` / `--output` / `--output-dir` 一样的路径校验：父目录不存在或目标是目录时，直接报清晰 CLI 错误，不再在写报告阶段抛 traceback。
-- 新增 `tests/test_test_runner.py` 覆盖这一回归点，并同步更新主 README、`README-GITHUB.md` 和 `test_runner.md` 的用法说明。
-
-### 2026-04-27 09:34
-
-- `test_runner.py` 现在会对 `--test` 做和 `--output` / `--output-dir` 一样的路径校验：文件不存在或传到目录时，直接报清晰 CLI 错误，不再抛 `FileNotFoundError` traceback。
-- 主 README、`README-GITHUB.md` 和 `test_runner.md` 已同步补充 `--test` 的真实约束：接受 `test_04.md` 这类文件名或绝对路径，且目标必须存在并指向文件。
-
-### 2026-04-26 09:33
-
-- `test_runner.py` 现在会在 `--output` 指向不存在/非文件路径，或 `--output-dir` 指向不存在/非目录路径时直接报错退出，避免抛 Python traceback 或产出误导性的报告。
-- 主 README、`README-GITHUB.md` 和 `test_runner.md` 已同步补充路径要求：`--output` 需要配合单个 `--test` 和一个已存在的 markdown 文件，`--output-dir` 需要是已存在目录。
-
-### 2026-04-25 11:03
-
-- 修正文档中对 `test_runner.py` 的夸大描述：它现在被明确说明为“回归套件校验 + 已保存输出校验”工具，而不是自动调用 Skill 或自动跑 JSON Schema / LUFS 指标的脚本。
-- README 与 `test_runner.md` 同步补充了 `--test`、`--output`、`--output-dir` 的真实用法，以及批量校验时需要使用 `test_01.md` 这类文件命名。
-- 补充说明 `schemas/*.json` 目前是结构化集成参考，不属于 `test_runner.py` 的自动执行范围，避免 README、schema、脚本三者语义错位。
-
-### 2026-04-23 22:20
-
-- 补上缺失的 `test_runner.py`，现在仓库可以直接校验 `test_cases/` 套件完整性，并支持对传入的生成结果做 10 段结构、Similarity Guard、冷启动规则检查。
-- README 同步补充了真实可执行的验证方式，避免出现“文档写了 `python3 test_runner.py`，仓库里却没有脚本”的断层。
-- 安装命令已改成当前仓库的真实 GitHub 地址，方便直接复制安装。
-
-<!-- github-autopilot:updates:end -->
-
 ### 📊 基于真实数据，不是凭空想象
 
 我们分析了 **148 首**周杰伦作品的音频报告（2000《Jay》→ 现在），提取了：
@@ -670,3 +566,107 @@ Intro 平均 4 小节，Outro 平均 8 小节。
 ```
 
 **下一个周杰伦，就是你。** 🎸✨
+
+## 附录：自动更新记录
+
+<!-- github-autopilot:updates:start -->
+
+### 2026-05-22
+
+- 收紧结构化 JSON 的嵌套合同：`schemas/input_schema.json` 不再接受 `emotion: {}` 这种空对象；`schemas/output_schema.json` 现在要求每条 `lyric_direction.sample_lines[]` 同时包含 `section` 和 `text`，每条 `de_similarization.actions[]` 同时包含 `target_section`、`issue` 和 `rewrite`。
+- `tests/test_test_runner.py` 新增 3 条回归测试锁定这些场景；主 README 也同步补充了新的 JSON 使用约束，现有 `schemas/input_example.json` 与 `schemas/output_example.json` 保持兼容。
+
+### 2026-05-21
+
+- `test_runner.py` 的 `--test` 现在除了继续支持 `test_04.md` 这类短文件名和绝对路径，也支持 `./test_cases/test_04.md`、`test_cases/test_04.md` 这类 repo 相对路径，不会再把它们误拼成错误的双层 `test_cases/test_cases/...`。
+- `tests/test_test_runner.py` 新增两条回归测试，分别锁定“从仓库根目录传 `./test_cases/...`”和“从仓库外目录传 `test_cases/...`”这两种常见调用方式；主 README 与 `test_runner.md` 也已同步更新用法说明。
+
+### 2026-05-19
+
+- `test_runner.py` 现在会把 `test_04` 第 9 段里的 `和声相似度` 与 `Hook 相似度` 当成必检子项，要求它们各自显式给出 `PASS` 或 `BLOCK`，不再允许只写一个笼统的总体结论就误判通过。
+- `tests/test_test_runner.py` 新增通过 / 失败两组回归测试；主 README 和 `test_runner.md` 也同步补上这条安全回归规则。
+
+### 2026-05-17
+
+- `test_runner.py` 新增 `--validate-structured-examples`，可在不引入第三方依赖的前提下，对 `schemas/input_example.json` 和 `schemas/output_example.json` 执行内建 JSON Schema 子集校验。
+- `tests/test_test_runner.py` 已从“能解析 + 少量字段 smoke test”补强为结构化合同测试，覆盖示例通过、缺失必填字段和非法枚举值三类场景；主 README 与 `test_runner.md` 也同步写明了这个新入口和能力边界。
+
+### 2026-05-12
+
+- `test_runner.py` 现在会在完整方案场景下额外拦截两类以前会漏掉的编号问题：`1–10` 章节**乱序**，以及重复编号（例如两个 `### 9.`）。
+- `tests/test_test_runner.py` 已补上“乱序失败”和“重复编号失败”的回归测试；主 README 与 `test_runner.md` 也同步明确：`10 段模板` 检查的是“完整、按顺序且不重复”的编号合同。
+
+### 2026-05-10
+
+- `test_runner.py` 现在会在 `test_02` 的“默认主题说明 + 完整 10 段”分支里检查 5 个输入参数是否都有明确证据：`轻 R&B`、`小调都市感`、`电钢铺底`、`副歌 Pad 扩张`、`城市夜景`。
+- `tests/test_test_runner.py` 新增通过 / 失败两组回归测试；主 README 和 `test_runner.md` 也同步补上这条自动化规则，避免 `test_cases/test_02.md` 和脚本再漂移。
+
+### 2026-05-07
+
+- 统一融合模式的 `Fusion Notes` 编号合同：`test_runner.py` 现在在继续要求 `1–10` 段完整的同时，也接受可选的 `### 11. 融合说明 / Fusion Notes`，不再把它误判成模板失败。
+- `tests/test_test_runner.py` 新增回归测试锁定这个行为，`schemas/output_schema.json` 与 `test_runner.md` 也同步明确：`fusion_notes` 对应的是第 10 段后的附加说明，若继续编号，第 11 段同样合法。
+
+### 2026-05-06
+
+- 新增 `schemas/input_example.json` 和 `schemas/output_example.json`，补上一对可直接复制的结构化 JSON 示例，覆盖 v1.1 的“方文山人格 + electronic `50:50` 融合”场景。
+- 新增 `tests/test_test_runner.py` smoke tests，确保这两个 example 文件可解析，并且关键字段与 `schemas/output_schema.json` 的必填顶层字段、`risk_check` tri-state、`fusion_notes` 合同保持一致。
+
+### 2026-05-05
+
+- 修复 `schemas/output_schema.json` 的结构化输出合同不一致：`risk_check.overall` 现在与 README、`test_runner.py` 和示例保持一致，统一使用 `PASS` / `WARN` / `BLOCK`。
+- 新增 `tests/test_test_runner.py` 回归测试，锁定这个 schema 枚举，避免结构化 JSON 输出再次和文档漂移。
+
+### 2026-05-04
+
+- 修复 `test_runner.py` 对 `test_01` “歌词示例句” 的假阳性：现在只统计第 6 段里 `示例句` / `原创示例句` 标记后的列表项，不会再把主题定位、意象库这类普通 bullet 误算成示例句。
+- 新增 `tests/test_test_runner.py` 回归测试覆盖“只有元数据 bullets”与“显式示例句列表”两个场景，并同步更新主 README、`README-GITHUB.md` 和 `test_runner.md` 的说明。
+
+### 2026-05-03
+
+- 修复 `test_runner.py` 在 `--output-dir` 模式下的一个稳定性边界：如果 `generated_outputs/test_01.md` 这类同名路径其实是目录而不是 markdown 文件，脚本现在会给出 `生成结果` 的 `WARN`，而不是在读取时抛 traceback。
+- 新增 `tests/test_test_runner.py` 回归测试覆盖这个场景，并同步更新主 README、`README-GITHUB.md` 和 `test_runner.md` 的用法说明。
+
+### 2026-05-02
+
+- `examples.md` 新增完整的 Example 4，演示 v1.1 的“方文山系词人人格 + 周杰伦 × electronic `50:50` 融合 + `[JC]` / `[F]` / `[MIX]` 来源标记 + `Fusion Notes`”端到端输出。
+- `SKILL.md`、主 README 和 `README-GITHUB.md` 已同步把完整示例引用更新到 Example 4，用户现在可以直接照着这份案例触发 v1.1 功能。
+
+### 2026-04-30 10:05
+
+- 新增 `test_cases/test_06.md`，把 v1.1 的“词人人格 + 跨风格融合”联动场景纳入回归套件。
+- `test_runner.py` 现在会额外检查 `50:50` 融合比例、`[JC]` / `[F]` / `[MIX]` 来源标记，以及 `融合说明` / `Fusion Notes`。
+- `tests/test_test_runner.py`、主 README 和 `test_runner.md` 已同步补上这条回归说明。
+
+### 2026-04-29 09:33
+
+- 修复 `test_runner.py` 的冷启动分支校验：`test_02` 的“1–2 个澄清问题”响应，以及 `test_05` 的首轮冷启动提问，不再先被通用的 10 段 / Similarity Guard / 去相似化检查误判为失败。
+- 新增 `tests/test_test_runner.py` 回归测试覆盖这两个场景，并同步更新主 README、`README-GITHUB.md` 和 `test_runner.md` 的测试说明。
+
+### 2026-04-28 16:18
+
+- `test_runner.py` 现在会对 `--report-file` 做和 `--test` / `--output` / `--output-dir` 一样的路径校验：父目录不存在或目标是目录时，直接报清晰 CLI 错误，不再在写报告阶段抛 traceback。
+- 新增 `tests/test_test_runner.py` 覆盖这一回归点，并同步更新主 README、`README-GITHUB.md` 和 `test_runner.md` 的用法说明。
+
+### 2026-04-27 09:34
+
+- `test_runner.py` 现在会对 `--test` 做和 `--output` / `--output-dir` 一样的路径校验：文件不存在或传到目录时，直接报清晰 CLI 错误，不再抛 `FileNotFoundError` traceback。
+- 主 README、`README-GITHUB.md` 和 `test_runner.md` 已同步补充 `--test` 的真实约束：接受 `test_04.md` 这类文件名或绝对路径，且目标必须存在并指向文件。
+
+### 2026-04-26 09:33
+
+- `test_runner.py` 现在会在 `--output` 指向不存在/非文件路径，或 `--output-dir` 指向不存在/非目录路径时直接报错退出，避免抛 Python traceback 或产出误导性的报告。
+- 主 README、`README-GITHUB.md` 和 `test_runner.md` 已同步补充路径要求：`--output` 需要配合单个 `--test` 和一个已存在的 markdown 文件，`--output-dir` 需要是已存在目录。
+
+### 2026-04-25 11:03
+
+- 修正文档中对 `test_runner.py` 的夸大描述：它现在被明确说明为“回归套件校验 + 已保存输出校验”工具，而不是自动调用 Skill 或自动跑 JSON Schema / LUFS 指标的脚本。
+- README 与 `test_runner.md` 同步补充了 `--test`、`--output`、`--output-dir` 的真实用法，以及批量校验时需要使用 `test_01.md` 这类文件命名。
+- 补充说明 `schemas/*.json` 目前是结构化集成参考，不属于 `test_runner.py` 的自动执行范围，避免 README、schema、脚本三者语义错位。
+
+### 2026-04-23 22:20
+
+- 补上缺失的 `test_runner.py`，现在仓库可以直接校验 `test_cases/` 套件完整性，并支持对传入的生成结果做 10 段结构、Similarity Guard、冷启动规则检查。
+- README 同步补充了真实可执行的验证方式，避免出现“文档写了 `python3 test_runner.py`，仓库里却没有脚本”的断层。
+- 安装命令已改成当前仓库的真实 GitHub 地址，方便直接复制安装。
+
+<!-- github-autopilot:updates:end -->
