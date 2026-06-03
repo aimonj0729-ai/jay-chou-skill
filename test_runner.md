@@ -23,6 +23,8 @@
 - `--report-file`：自定义 markdown 报告输出位置。父目录必须已存在，目标不能是目录
 - `--validate-structured-examples`：额外检查 `schemas/input_example.json` 和 `schemas/output_example.json` 是否通过仓库内建的 JSON Schema 子集校验
 
+内建 JSON Schema 子集现在会检查 `type`、`enum`、`required`、`minItems` / `maxItems`、`minimum` / `maximum`、`oneOf`、`anyOf` 和 `additionalProperties`。两份结构化 schema 的顶层对象已设置为不接受未声明字段，避免示例里出现拼写错误或旧字段时仍被判通过。
+
 通用检查包括（仅适用于**预期应输出完整 10 段方案**的场景）：
 
 - 10 段编号章节是否完整、按顺序且不重复

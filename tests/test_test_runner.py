@@ -157,6 +157,31 @@ class StructuredExampleFilesTests(unittest.TestCase):
         self.assertTrue(any("$.risk_check.overall" in error for error in errors))
         self.assertTrue(any("missing required property de_similarization" in error for error in errors))
 
+    def test_output_schema_rejects_unknown_top_level_properties(self) -> None:
+        schema_path = ROOT_DIR / "schemas" / "output_schema.json"
+        schema = json.loads(schema_path.read_text(encoding="utf-8"))
+        example_path = ROOT_DIR / "schemas" / "output_example.json"
+        payload = json.loads(example_path.read_text(encoding="utf-8"))
+
+        errors = test_runner.validate_json_instance_against_schema(
+            {**payload, "legacy_similarity_status": "WARN_WITH_REWRITES"},
+            schema,
+        )
+
+        self.assertTrue(any("$: unexpected property legacy_similarity_status" in error for error in errors))
+
+    def test_additional_properties_schema_can_validate_unknown_property_values(self) -> None:
+        errors = test_runner.validate_json_instance_against_schema(
+            {"known": "ok", "extra": 3},
+            {
+                "type": "object",
+                "properties": {"known": {"type": "string"}},
+                "additionalProperties": {"type": "string"},
+            },
+        )
+
+        self.assertEqual(errors, ["$.extra: expected string"])
+
     def test_input_schema_rejects_empty_emotion_object(self) -> None:
         schema_path = ROOT_DIR / "schemas" / "input_schema.json"
         schema = json.loads(schema_path.read_text(encoding="utf-8"))

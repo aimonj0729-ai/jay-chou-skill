@@ -592,6 +592,23 @@ Intro 平均 4 小节，Outro 平均 8 小节。
 
 <!-- github-autopilot:updates:start -->
 
+### 2026-06-03 09:34
+
+已完成一项小而完整的自动改进，未提交、未推送。
+
+我补强了结构化 JSON 示例校验：`test_runner.py` 的内建 JSON Schema 子集现在支持 `additionalProperties`，并把 [schemas/input_schema.json](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/input_schema.json) 和 [schemas/output_schema.json](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/output_schema.json) 的顶层对象收紧为不接受未知字段。这样 `--validate-structured-examples` 可以拦住拼错字段名或遗留旧字段名的结构化示例漂移。
+
+同步更新了：
+- [test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py)：支持 `additionalProperties`
+- [tests/test_test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py)：新增未知字段和子 schema 校验回归
+- [test_runner.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md)：同步说明校验器能力边界
+- [README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md)：在文末自动更新附录记录本次改动
+
+验证已通过：
+- `python3 -m unittest discover -s tests`，30 个测试通过
+- `python3 test_runner.py --no-write-report --validate-structured-examples`，20 个检查通过，0 warning，0 fail
+- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
+
 ### 2026-05-22 09:39
 
 这次只做了一项高置信度改进：收紧结构化 JSON 合同，并补齐内建 schema 校验器对这类合同的真实执行。问题在于仓库原先会放过明显无效的 payload，比如 `emotion: {}`、缺少 `text` 的 `sample_lines[]`，以及缺少字段的 `de_similarization.actions[]`；更底层一点，[test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:295) 的内建 validator 只在 schema 显式写了 `type: object` 时才处理 `required`，导致 `anyOf` 里的 `required` 约束实际上可能失效。我把这个问题收口在 [schemas/input_schema.json](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/input_schema.json:11)、[schemas/output_schema.json](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/output_schema.json:128) 和 [test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:295) 里：现在 `emotion` 至少要给 `start` 或 `end`，每条歌词示例必须同时带 `section` 和 `text`，每条去相似化动作必须同时带 `target_section`、`issue` 和 `rewrite`。
@@ -1002,5 +1019,13 @@ README 也同步了这次变化：主 [README.md](/Users/aimon/Desktop/claude co
 - 补上缺失的 `test_runner.py`，现在仓库可以直接校验 `test_cases/` 套件完整性，并支持对传入的生成结果做 10 段结构、Similarity Guard、冷启动规则检查。
 - README 同步补充了真实可执行的验证方式，避免出现“文档写了 `python3 test_runner.py`，仓库里却没有脚本”的断层。
 - 安装命令已改成当前仓库的真实 GitHub 地址，方便直接复制安装。
+
+### 2026-06-03
+
+这次只做了一项高置信度的结构化校验补强：`test_runner.py` 的内建 JSON Schema 子集现在支持 `additionalProperties`，并且 `schemas/input_schema.json` / `schemas/output_schema.json` 的顶层对象已明确拒绝未声明字段。这样 `--validate-structured-examples` 不只会检查必填字段和枚举，也能拦住结构化示例里拼错字段名、残留旧字段名却仍被误判通过的问题。
+
+对应回归测试补在 `tests/test_test_runner.py`：一条锁定输出 schema 会拒绝未知顶层字段，另一条覆盖 `additionalProperties` 为子 schema 时会继续校验未知字段值。`test_runner.md` 也同步写明了当前内建 JSON Schema 子集的能力边界。
+
+验证已跑：`python3 -m unittest discover -s tests`、`python3 test_runner.py --no-write-report --validate-structured-examples`、`python3 -m py_compile test_runner.py tests/test_test_runner.py`。未提交，未推送。
 
 <!-- github-autopilot:updates:end -->

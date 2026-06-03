@@ -302,6 +302,15 @@ def validate_json_instance_against_schema(instance: object, schema: object, path
             property_schema = properties.get(key)
             if property_schema is not None:
                 errors.extend(validate_json_instance_against_schema(value, property_schema, f"{path}.{key}"))
+                continue
+
+            additional_properties = schema.get("additionalProperties", True)
+            if additional_properties is False:
+                errors.append(f"{path}: unexpected property {key}")
+            elif isinstance(additional_properties, dict):
+                errors.extend(
+                    validate_json_instance_against_schema(value, additional_properties, f"{path}.{key}")
+                )
 
     if isinstance(instance, list):
         min_items = schema.get("minItems")

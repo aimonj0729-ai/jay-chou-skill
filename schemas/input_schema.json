@@ -4,6 +4,7 @@
   "title": "Jay Chou Skill — User Request Input",
   "description": "结构化的创作需求输入。所有字段都是可选，但 theme / emotion / reference_mood 至少要给一个，否则 Skill 会走冷启动澄清流程。",
   "type": "object",
+  "additionalProperties": false,
   "properties": {
     "theme": {
       "type": "string",

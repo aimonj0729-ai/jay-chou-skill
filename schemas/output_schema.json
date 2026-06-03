@@ -4,6 +4,7 @@
   "title": "Jay Chou Skill — 10-Section Song Plan Output",
   "description": "10 段式原创歌曲方案的结构化表示。对应 system_prompt.md 的输出模板。",
   "type": "object",
+  "additionalProperties": false,
   "required": [
     "song_concept",
     "emotional_arc",
