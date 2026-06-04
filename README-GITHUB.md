@@ -200,7 +200,7 @@ const output = await skill.run({
 ```
 
 如果切到 `output_format: 'json'`，`risk_check` 里的状态标签也和 markdown 第 9 段保持同一套枚举：`PASS` / `WARN` / `BLOCK`。融合模式下可额外返回 `fusion_notes`。
-`fusion_notes` 对应 markdown 里的附加 `Fusion Notes` / `融合说明`；默认不计入 10 段正文，如果你想继续编号，写成 `### 11. 融合说明` 也算合法。
+`fusion_notes` 对应 markdown 里的附加 `Fusion Notes` / `融合说明`；默认不计入 10 段正文，如果你想继续编号，写成 `### 11. 融合说明` 或更深的 markdown 标题层级也算合法。
 
 如果你准备直接接结构化输出，仓库里现在有一对可复制的样例：
 - `schemas/input_example.json`：完整演示 JSON 请求如何表达主题、情绪、词人人格和 `fusion`
@@ -376,7 +376,7 @@ python3 test_runner.py --validate-structured-examples
 
 `test_runner.py` 当前能直接检查的内容包括：
 - ✓ `test_cases/*.md` 是否包含用途 / 输入 / 预期行为 / 验收清单
-- ✓ 在预期应输出完整方案的场景里，生成结果是否包含完整、按顺序且不重复的 10 段编号章节
+- ✓ 在预期应输出完整方案的场景里，生成结果是否包含完整、按顺序且不重复的 10 段编号章节（支持 `## 1.` 到 `###### 1.` 这类标题层级）
 - ✓ 在预期应输出完整方案的场景里，第 9 段是否带 `PASS` / `WARN` / `BLOCK`
 - ✓ 在预期应输出完整方案的场景里，第 10 段是否给出明确处理方向
 - ✓ `test_01`–`test_06` 的关键场景规则，例如 `test_01` 只统计显式 `示例句` 列表项，`test_04` 会额外要求第 9 段显式给出 `和声相似度` 与 `Hook 相似度` 的 `PASS/BLOCK` 结论，此外还覆盖冷启动提问、复制请求拒绝、东方陈词黑名单，以及 v1.1 的词人人格 / 融合标记检查
@@ -406,7 +406,7 @@ python3 test_runner.py --output-dir ./generated_outputs
 # 对 test_02 的澄清问题分支和 test_05 的首轮响应，脚本会改走冷启动规则，不强制要求 10 段
 # `test_04.md` 还会额外检查第 9 段是否显式给出和声相似度与 Hook 相似度的 PASS/BLOCK 结论
 # `test_06.md` 还会额外检查融合比例、来源标记和融合说明
-# 融合说明默认是第 10 段后的附加说明；若继续编号成 `### 11. 融合说明 / Fusion Notes`，也会被视为合法
+# 融合说明默认是第 10 段后的附加说明；若继续编号成 `### 11.` / `#### 11. 融合说明 / Fusion Notes`，也会被视为合法
 # 目录中的文件名需对应为 test_01.md、test_02.md ...
 # 如果某个同名路径其实是目录而不是 markdown 文件，报告会给 WARN，不会抛 traceback
 # --output-dir 必须是已存在目录；路径写错时脚本会直接报错退出
@@ -590,6 +590,12 @@ Intro 平均 4 小节，Outro 平均 8 小节。
 ## 附录：自动更新记录
 
 <!-- github-autopilot:updates:start -->
+
+### 2026-06-04
+
+- `test_runner.py` 的 10 段 markdown 输出校验现在支持 `## 1.` 到 `###### 1.` 的编号章节，不再只接受 `### 1.`。这避免从嵌套示例文档复制出的 `#### 1.` 输出被误判为缺少 10 段。
+- `tests/test_test_runner.py` 已新增回归测试；主 README、`README-GITHUB.md` 和 `test_runner.md` 也同步说明了标题层级兼容规则。
+- 验证已通过：`python3 -m unittest discover -s tests`、`python3 test_runner.py --no-write-report --validate-structured-examples`、`python3 -m py_compile test_runner.py tests/test_test_runner.py`。
 
 ### 2026-05-22
 

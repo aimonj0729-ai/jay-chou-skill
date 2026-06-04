@@ -295,6 +295,25 @@ class ValidateOutputForTestTests(unittest.TestCase):
 
         self.assertEqual(statuses["歌词示例句"], "PASS")
 
+    def test_generic_output_accepts_nested_markdown_heading_levels(self) -> None:
+        spec = test_runner.load_test_case(ROOT_DIR / "test_cases" / "test_01.md")
+        output_path = self.write_output(
+            build_full_output(
+                section_6=(
+                    "- **原创示例句**（3 条）：\n"
+                    "1. 渡口的旧灯照着潮痕。\n"
+                    "2. 宣纸把晚风折成一页。\n"
+                    "3. 木船没说话，只晃了晃绳结。"
+                ),
+                section_7="Piano 为主，副歌加入 Strings 和鼓组。",
+            ).replace("### ", "#### ")
+        )
+
+        checks = test_runner.validate_output_for_test(spec, output_path)
+        statuses = {check.label: check.status for check in checks}
+
+        self.assertEqual(statuses["10 段模板"], "PASS")
+
     def test_generic_output_fails_when_numbered_sections_are_out_of_order(self) -> None:
         spec = test_runner.load_test_case(ROOT_DIR / "test_cases" / "test_01.md")
         output_path = self.write_output(
@@ -514,7 +533,7 @@ class ValidateOutputForTestTests(unittest.TestCase):
                     "- 比例：50:50"
                 ),
                 suffix=(
-                    "### 11. 融合说明 Fusion Notes\n"
+                    "#### 11. 融合说明 Fusion Notes\n"
                     "- 融合方案：周杰伦 × electronic（50:50）\n"
                     "- 保留维度：结构与情绪弧线 [JC]\n"
                     "- 融合维度：编曲、节奏、音色 [MIX]\n"

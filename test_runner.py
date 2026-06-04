@@ -31,12 +31,12 @@ OUTPUT_EXAMPLE_PATH = ROOT_DIR / "schemas" / "output_example.json"
 REQUIRED_TEST_SECTIONS = ("## 用途", "## 输入", "## 预期行为", "## 验收清单")
 REQUIRED_OUTPUT_SECTIONS = tuple(range(1, 11))
 QUESTION_PATTERN = re.compile(r"[?？]")
-NUMBERED_SECTION_PATTERN = re.compile(r"^###\s+(\d+)\.\s+.+$", re.MULTILINE)
+NUMBERED_SECTION_PATTERN = re.compile(r"^#{2,6}\s+(\d+)\.\s+.+$", re.MULTILINE)
 FUSION_SOURCE_MARKER_PATTERN = re.compile(r"\[(?:JC|F|MIX)\]")
 LYRIC_SAMPLE_MARKER_PATTERN = re.compile(r"(?:原创)?示例句|sample lines", re.IGNORECASE)
 LIST_ITEM_PATTERN = re.compile(r"^\s*(?:[-*]|\d+\.)\s+")
 OPTIONAL_NUMBERED_FUSION_SECTION_PATTERN = re.compile(
-    r"^###\s+11\.\s+.*(?:融合说明|Fusion Notes).*$",
+    r"^#{2,6}\s+11\.\s+.*(?:融合说明|Fusion Notes).*$",
     re.MULTILINE | re.IGNORECASE,
 )
 
