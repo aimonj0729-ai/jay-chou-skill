@@ -170,6 +170,60 @@ class StructuredExampleFilesTests(unittest.TestCase):
 
         self.assertTrue(any("$: unexpected property legacy_similarity_status" in error for error in errors))
 
+    def test_input_schema_rejects_unknown_nested_properties(self) -> None:
+        schema_path = ROOT_DIR / "schemas" / "input_schema.json"
+        schema = json.loads(schema_path.read_text(encoding="utf-8"))
+        example_path = ROOT_DIR / "schemas" / "input_example.json"
+        payload = json.loads(example_path.read_text(encoding="utf-8"))
+
+        errors = test_runner.validate_json_instance_against_schema(
+            {
+                **payload,
+                "emotion": {
+                    **payload["emotion"],
+                    "legacy_curve_note": "old field",
+                },
+                "fusion": {
+                    **payload["fusion"],
+                    "legacy_ratio_label": "half",
+                },
+            },
+            schema,
+        )
+
+        self.assertTrue(any("$.emotion: unexpected property legacy_curve_note" in error for error in errors))
+        self.assertTrue(any("$.fusion: unexpected property legacy_ratio_label" in error for error in errors))
+
+    def test_output_schema_rejects_unknown_nested_properties(self) -> None:
+        schema_path = ROOT_DIR / "schemas" / "output_schema.json"
+        schema = json.loads(schema_path.read_text(encoding="utf-8"))
+        example_path = ROOT_DIR / "schemas" / "output_example.json"
+        payload = json.loads(example_path.read_text(encoding="utf-8"))
+
+        errors = test_runner.validate_json_instance_against_schema(
+            {
+                **payload,
+                "emotional_arc": {
+                    **payload["emotional_arc"],
+                    "legacy_curve_note": "old field",
+                },
+                "structure": {
+                    **payload["structure"],
+                    "sections": [
+                        {
+                            **payload["structure"]["sections"][0],
+                            "legacy_marker": "old field",
+                        },
+                        *payload["structure"]["sections"][1:],
+                    ],
+                },
+            },
+            schema,
+        )
+
+        self.assertTrue(any("$.emotional_arc: unexpected property legacy_curve_note" in error for error in errors))
+        self.assertTrue(any("$.structure.sections[0]: unexpected property legacy_marker" in error for error in errors))
+
     def test_additional_properties_schema_can_validate_unknown_property_values(self) -> None:
         errors = test_runner.validate_json_instance_against_schema(
             {"known": "ok", "extra": 3},

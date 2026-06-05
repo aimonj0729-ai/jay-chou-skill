@@ -13,6 +13,7 @@
     "emotion": {
       "type": "object",
       "description": "情绪曲线。起点情绪 → 终点情绪。至少提供 start 或 end 之一，不能传空对象。",
+      "additionalProperties": false,
       "properties": {
         "start": {
           "type": "string",
@@ -84,6 +85,7 @@
     "hard_constraints": {
       "type": "object",
       "description": "硬性限制。",
+      "additionalProperties": false,
       "properties": {
         "duration_sec": { "type": "integer", "minimum": 60, "maximum": 360 },
         "ban_elements": {
@@ -122,6 +124,7 @@
           "type": "object",
           "description": "混合模式：指定主次人格和比例。",
           "required": ["primary"],
+          "additionalProperties": false,
           "properties": {
             "primary": {
               "type": "string",
@@ -144,6 +147,7 @@
     "fusion": {
       "type": "object",
       "description": "跨风格融合设置。指定融合风格和比例。",
+      "additionalProperties": false,
       "properties": {
         "style": {
           "type": "string",

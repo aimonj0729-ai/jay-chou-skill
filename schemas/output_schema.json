@@ -26,6 +26,7 @@
       "type": "object",
       "description": "2. 情绪轨迹。",
       "required": ["anchors", "curve"],
+      "additionalProperties": false,
       "properties": {
         "anchors": {
           "type": "array",
@@ -44,6 +45,7 @@
       "type": "object",
       "description": "3. 结构建议。",
       "required": ["sections"],
+      "additionalProperties": false,
       "properties": {
         "sections": {
           "type": "array",
@@ -51,6 +53,7 @@
           "items": {
             "type": "object",
             "required": ["name", "bars"],
+            "additionalProperties": false,
             "properties": {
               "name": {
                 "type": "string",
@@ -66,12 +69,14 @@
     "chord_direction": {
       "type": "object",
       "description": "4. 和声方向。",
+      "additionalProperties": false,
       "properties": {
         "key": { "type": "string" },
         "mode": { "type": "string", "enum": ["major", "minor", "modal"] },
         "progressions": {
           "type": "object",
           "description": "每段的功能和声标记。",
+          "additionalProperties": false,
           "properties": {
             "verse": { "type": "string" },
             "pre_chorus": { "type": "string" },
@@ -93,6 +98,7 @@
     "melody_direction": {
       "type": "object",
       "description": "5. 旋律设计建议。",
+      "additionalProperties": false,
       "properties": {
         "verse": { "type": "string" },
         "pre_chorus": { "type": "string" },
@@ -104,6 +110,7 @@
     "lyric_direction": {
       "type": "object",
       "description": "6. 歌词意象与叙事方案。",
+      "additionalProperties": false,
       "properties": {
         "theme": { "type": "string" },
         "perspective": { "type": "string" },
@@ -113,6 +120,7 @@
         "rhyme_strategy": { "type": "string" },
         "section_roles": {
           "type": "object",
+          "additionalProperties": false,
           "properties": {
             "verse": { "type": "string" },
             "pre_chorus": { "type": "string" },
@@ -127,6 +135,7 @@
           "items": {
             "type": "object",
             "required": ["section", "text"],
+            "additionalProperties": false,
             "properties": {
               "section": { "type": "string" },
               "text": { "type": "string" }
@@ -144,6 +153,7 @@
     "arrangement_direction": {
       "type": "object",
       "description": "7. 编曲推进方案。",
+      "additionalProperties": false,
       "properties": {
         "intro": { "type": "string" },
         "verse": { "type": "string" },
@@ -159,6 +169,7 @@
     "hook_concept": {
       "type": "object",
       "description": "8. 副歌 hook 构思。",
+      "additionalProperties": false,
       "properties": {
         "motif_shape": { "type": "string" },
         "range": { "type": "string" },
@@ -170,6 +181,7 @@
       "type": "object",
       "description": "9. 原创性风险检查。对照 similarity_guard.md 的检测清单。",
       "required": ["overall"],
+      "additionalProperties": false,
       "properties": {
         "lyric_cliche": { "type": "string", "enum": ["PASS", "WARN", "BLOCK"] },
         "image_density": { "type": "string", "enum": ["PASS", "WARN", "BLOCK"] },
@@ -186,6 +198,7 @@
     "de_similarization": {
       "type": "object",
       "description": "10. 去相似化建议。",
+      "additionalProperties": false,
       "properties": {
         "required": { "type": "boolean" },
         "actions": {
@@ -193,6 +206,7 @@
           "items": {
             "type": "object",
             "required": ["target_section", "issue", "rewrite"],
+            "additionalProperties": false,
             "properties": {
               "target_section": { "type": "string" },
               "issue": { "type": "string" },
@@ -205,6 +219,7 @@
     "fusion_notes": {
       "type": "object",
       "description": "融合说明（仅融合模式输出）。对应 markdown 第 10 段后的附加说明；若继续编号，使用第 11 段也合法。",
+      "additionalProperties": false,
       "properties": {
         "fusion_style": { "type": "string", "description": "融合风格名称。" },
         "ratio": { "type": "string", "description": "融合比例，如 '70:30'。" },
