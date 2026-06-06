@@ -206,9 +206,10 @@ const output = await skill.run({
 - `schemas/input_example.json`：完整演示 JSON 请求如何表达主题、情绪、词人人格和 `fusion`
 - `schemas/output_example.json`：对应的 10 段 JSON 响应，包含 `risk_check` 与融合模式下的 `fusion_notes`
 
-当前 schema 还额外收紧了 4 条最容易踩坑的嵌套合同：
+当前 schema 还额外收紧了 5 条最容易踩坑的嵌套合同：
 - 顶层和主要嵌套对象不接受未声明字段，能拦住拼错字段名或残留旧字段
 - `emotion` 不能是空对象；至少给 `start` 或 `end`
+- 输出第 4–8 段和第 10 段不能只传空对象；和声、旋律、歌词、编曲、Hook 与去相似化段落都必须包含最低可用字段
 - `lyric_direction.sample_lines[]` 的每一项都必须同时带 `section` 和 `text`
 - `de_similarization.actions[]` 的每一项都必须同时带 `target_section`、`issue` 和 `rewrite`
 
@@ -701,5 +702,11 @@ Intro 平均 4 小节，Outro 平均 8 小节。
 - 补上缺失的 `test_runner.py`，现在仓库可以直接校验 `test_cases/` 套件完整性，并支持对传入的生成结果做 10 段结构、Similarity Guard、冷启动规则检查。
 - README 同步补充了真实可执行的验证方式，避免出现“文档写了 `python3 test_runner.py`，仓库里却没有脚本”的断层。
 - 安装命令已改成当前仓库的真实 GitHub 地址，方便直接复制安装。
+
+### 2026-06-06
+
+- `schemas/output_schema.json` 现在要求第 4–8 段和第 10 段包含最低可用字段，不再接受 `chord_direction: {}`、`hook_concept: {}` 或 `de_similarization: {}` 这类空段落对象。
+- `tests/test_test_runner.py` 新增回归测试，主 README 与 `test_runner.md` 同步说明结构化输出合同。
+- 验证已通过：34 个单测、20 个回归/结构化检查、Python 编译、JSON 解析和 `git diff --check`。
 
 <!-- github-autopilot:updates:end -->

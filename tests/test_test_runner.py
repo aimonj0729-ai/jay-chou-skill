@@ -301,6 +301,35 @@ class StructuredExampleFilesTests(unittest.TestCase):
         self.assertTrue(any("$.de_similarization.actions[1]" in error for error in errors))
         self.assertTrue(any("$.de_similarization.actions[2]" in error for error in errors))
 
+    def test_output_schema_rejects_empty_required_section_objects(self) -> None:
+        schema_path = ROOT_DIR / "schemas" / "output_schema.json"
+        schema = json.loads(schema_path.read_text(encoding="utf-8"))
+        example_path = ROOT_DIR / "schemas" / "output_example.json"
+        payload = json.loads(example_path.read_text(encoding="utf-8"))
+        required_fields_by_section = {
+            "chord_direction": ("key", "mode", "progressions"),
+            "melody_direction": ("verse", "chorus", "hook_device"),
+            "lyric_direction": ("theme", "perspective", "sample_lines"),
+            "arrangement_direction": ("intro", "verse", "chorus", "bridge", "outro"),
+            "hook_concept": ("motif_shape", "range", "rhythmic_pattern", "lyrical_anchor"),
+            "de_similarization": ("required", "actions"),
+        }
+
+        for section_name, required_fields in required_fields_by_section.items():
+            with self.subTest(section=section_name):
+                errors = test_runner.validate_json_instance_against_schema(
+                    {**payload, section_name: {}},
+                    schema,
+                )
+
+                for field_name in required_fields:
+                    self.assertTrue(
+                        any(
+                            f"$.{section_name}: missing required property {field_name}" in error
+                            for error in errors
+                        )
+                    )
+
 
 class ValidateOutputForTestTests(unittest.TestCase):
     def write_output(self, body: str) -> Path:

@@ -69,6 +69,7 @@
     "chord_direction": {
       "type": "object",
       "description": "4. 和声方向。",
+      "required": ["key", "mode", "progressions"],
       "additionalProperties": false,
       "properties": {
         "key": { "type": "string" },
@@ -98,6 +99,7 @@
     "melody_direction": {
       "type": "object",
       "description": "5. 旋律设计建议。",
+      "required": ["verse", "chorus", "hook_device"],
       "additionalProperties": false,
       "properties": {
         "verse": { "type": "string" },
@@ -110,6 +112,7 @@
     "lyric_direction": {
       "type": "object",
       "description": "6. 歌词意象与叙事方案。",
+      "required": ["theme", "perspective", "sample_lines"],
       "additionalProperties": false,
       "properties": {
         "theme": { "type": "string" },
@@ -153,6 +156,7 @@
     "arrangement_direction": {
       "type": "object",
       "description": "7. 编曲推进方案。",
+      "required": ["intro", "verse", "chorus", "bridge", "outro"],
       "additionalProperties": false,
       "properties": {
         "intro": { "type": "string" },
@@ -169,6 +173,7 @@
     "hook_concept": {
       "type": "object",
       "description": "8. 副歌 hook 构思。",
+      "required": ["motif_shape", "range", "rhythmic_pattern", "lyrical_anchor"],
       "additionalProperties": false,
       "properties": {
         "motif_shape": { "type": "string" },
@@ -198,6 +203,7 @@
     "de_similarization": {
       "type": "object",
       "description": "10. 去相似化建议。",
+      "required": ["required", "actions"],
       "additionalProperties": false,
       "properties": {
         "required": { "type": "boolean" },

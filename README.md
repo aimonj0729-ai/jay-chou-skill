@@ -206,9 +206,10 @@ const output = await skill.run({
 - `schemas/input_example.json`：完整演示 JSON 请求如何表达主题、情绪、词人人格和 `fusion`
 - `schemas/output_example.json`：对应的 10 段 JSON 响应，包含 `risk_check` 与融合模式下的 `fusion_notes`
 
-当前 schema 还额外收紧了 4 条最容易踩坑的嵌套合同：
+当前 schema 还额外收紧了 5 条最容易踩坑的嵌套合同：
 - 顶层和主要嵌套对象不接受未声明字段，能拦住拼错字段名或残留旧字段
 - `emotion` 不能是空对象；至少给 `start` 或 `end`
+- 输出第 4–8 段和第 10 段不能只传空对象；和声、旋律、歌词、编曲、Hook 与去相似化段落都必须包含最低可用字段
 - `lyric_direction.sample_lines[]` 的每一项都必须同时带 `section` 和 `text`
 - `de_similarization.actions[]` 的每一项都必须同时带 `target_section`、`issue` 和 `rewrite`
 
@@ -592,6 +593,18 @@ Intro 平均 4 小节，Outro 平均 8 小节。
 ## 附录：自动更新记录
 
 <!-- github-autopilot:updates:start -->
+
+### 2026-06-06 17:35
+
+完成一项结构化合同修复：
+
+- [output_schema.json](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/output_schema.json:69) 不再接受第 4–8、10 段为空对象。
+- [回归测试](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py:304) 覆盖六个段落。
+- README、测试文档及文末附录已同步。
+
+验证：34 个单测、20 个回归检查全部通过；Python 编译、JSON 解析、`git diff --check` 均通过。
+
+未提交，未推送。
 
 ### 2026-06-05 10:49
 
@@ -1071,5 +1084,11 @@ README 也同步了这次变化：主 [README.md](/Users/aimon/Desktop/claude co
 对应回归测试补在 `tests/test_test_runner.py`：一条锁定输出 schema 会拒绝未知顶层字段，另一条覆盖 `additionalProperties` 为子 schema 时会继续校验未知字段值。`test_runner.md` 也同步写明了当前内建 JSON Schema 子集的能力边界。
 
 验证已跑：`python3 -m unittest discover -s tests`、`python3 test_runner.py --no-write-report --validate-structured-examples`、`python3 -m py_compile test_runner.py tests/test_test_runner.py`。未提交，未推送。
+
+### 2026-06-06
+
+修复结构化输出 schema 会接受空段落对象的问题。此前顶层虽要求第 4–8 段和第 10 段存在，但 `chord_direction: {}`、`hook_concept: {}`、`de_similarization: {}` 等没有实际内容的对象仍会通过校验。现在这些段落分别要求最低可用字段，避免“形式上有 10 段、实际上缺内容”的半残 JSON 被接入方误收。
+
+对应回归测试已补到 `tests/test_test_runner.py`，并同步更新主 README、`README-GITHUB.md` 与 `test_runner.md` 的结构化合同说明。验证已通过：34 个单测通过；`python3 test_runner.py --no-write-report --validate-structured-examples` 完成 20 个检查，0 warning、0 fail；Python 编译、JSON 解析和 `git diff --check` 均通过。未提交，未推送。
 
 <!-- github-autopilot:updates:end -->
