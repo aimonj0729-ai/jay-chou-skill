@@ -594,6 +594,22 @@ Intro 平均 4 小节，Outro 平均 8 小节。
 
 <!-- github-autopilot:updates:start -->
 
+### 2026-06-07 17:35
+
+修复了测试污染工作区的问题：
+
+- 新增 [.gitignore](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/.gitignore)，忽略 Python 缓存。
+- 删除两个已跟踪的 `*.pyc` 文件。
+- 同步更新 README 文末附录。
+
+验证通过：34 个单测、20 个回归/结构化检查、Python 编译、JSON 解析及 `git diff --check`。
+
+未提交，未推送。
+
+### 2026-06-07
+
+修复运行 Python 测试会污染工作区的问题：仓库新增 `.gitignore`，统一忽略 `__pycache__/` 和 `*.py[cod]`，并移除此前误提交的两个 Python 字节码缓存文件。源码、测试行为和 Skill 输出合同均未改变。
+
 ### 2026-06-06 17:35
 
 完成一项结构化合同修复：

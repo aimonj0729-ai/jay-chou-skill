@@ -593,6 +593,12 @@ Intro 平均 4 小节，Outro 平均 8 小节。
 
 <!-- github-autopilot:updates:start -->
 
+### 2026-06-07
+
+- 新增 `.gitignore`，忽略 `__pycache__/` 和 `*.py[cod]`。
+- 移除此前误纳入版本控制的两个 Python 字节码缓存文件，运行测试不再因此产生工作区噪音。
+- 本次不改变源码、测试行为或 Skill 输出合同。
+
 ### 2026-06-05
 
 - 收紧结构化 JSON 的主要嵌套对象合同：`schemas/input_schema.json` 和 `schemas/output_schema.json` 现在会拒绝 `emotion`、`fusion`、`emotional_arc`、`structure.sections[]` 等对象里的未声明字段，不再只拦顶层未知字段。
