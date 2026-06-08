@@ -206,9 +206,10 @@ const output = await skill.run({
 - `schemas/input_example.json`：完整演示 JSON 请求如何表达主题、情绪、词人人格和 `fusion`
 - `schemas/output_example.json`：对应的 10 段 JSON 响应，包含 `risk_check` 与融合模式下的 `fusion_notes`
 
-当前 schema 还额外收紧了 5 条最容易踩坑的嵌套合同：
+当前 schema 还额外收紧了 6 条最容易踩坑的嵌套合同：
 - 顶层和主要嵌套对象不接受未声明字段，能拦住拼错字段名或残留旧字段
 - `emotion` 不能是空对象；至少给 `start` 或 `end`
+- `emotional_arc.anchors` 和 `lyric_direction.sample_lines` 都限制为 3–5 项，与 Skill 输出模板一致
 - 输出第 4–8 段和第 10 段不能只传空对象；和声、旋律、歌词、编曲、Hook 与去相似化段落都必须包含最低可用字段
 - `lyric_direction.sample_lines[]` 的每一项都必须同时带 `section` 和 `text`
 - `de_similarization.actions[]` 的每一项都必须同时带 `target_section`、`issue` 和 `rewrite`
@@ -593,6 +594,24 @@ Intro 平均 4 小节，Outro 平均 8 小节。
 ## 附录：自动更新记录
 
 <!-- github-autopilot:updates:start -->
+
+### 2026-06-08 17:44
+
+完成一项结构化合同修复：
+
+- [output_schema.json](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/schemas/output_schema.json:31)：情绪锚点和歌词示例上限由 6 改为 5，与文档的 3–5 项一致。
+- [测试](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py:307)：新增边界及 CLI 集成测试。
+- [README](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:598)：同步使用说明与文末更新附录。
+
+验证结果：37 个单测通过，总覆盖率 84%；20 个回归/结构化检查通过；Python 编译、JSON 解析、差异及安全检查通过。
+
+未提交，未推送。
+
+### 2026-06-08
+
+修复结构化输出数量上限与 Skill 模板不一致的问题：`system_prompt.md` 和 schema 描述都要求情绪锚点、原创歌词示例各 3–5 项，但 `schemas/output_schema.json` 实际会放行 6 项。现在两处 `maxItems` 都收紧为 5，并新增回归测试确保 6 项输入被拒绝；结构化示例和现有 3–5 项输出不受影响。
+
+同步更新了测试说明和 README 的 JSON 合同说明。验证通过：37 个单测、20 个回归/结构化检查，总覆盖率 84%，Python 编译、JSON 解析和 `git diff --check` 均通过。未提交，未推送。
 
 ### 2026-06-07 17:35
 

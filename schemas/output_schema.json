@@ -32,7 +32,7 @@
           "type": "array",
           "items": { "type": "string" },
           "minItems": 3,
-          "maxItems": 6,
+          "maxItems": 5,
           "description": "3–5 个情绪锚点，按时间顺序。"
         },
         "curve": {
@@ -134,7 +134,7 @@
         "sample_lines": {
           "type": "array",
           "minItems": 3,
-          "maxItems": 6,
+          "maxItems": 5,
           "items": {
             "type": "object",
             "required": ["section", "text"],

@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+import io
 import json
 import os
 import tempfile
 import unittest
+from contextlib import redirect_stdout
 from pathlib import Path
 import sys
+from unittest.mock import patch
 
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
@@ -300,6 +303,56 @@ class StructuredExampleFilesTests(unittest.TestCase):
         self.assertTrue(any("$.de_similarization.actions[0]" in error for error in errors))
         self.assertTrue(any("$.de_similarization.actions[1]" in error for error in errors))
         self.assertTrue(any("$.de_similarization.actions[2]" in error for error in errors))
+
+    def test_output_schema_rejects_more_than_five_emotional_anchors(self) -> None:
+        schema_path = ROOT_DIR / "schemas" / "output_schema.json"
+        schema = json.loads(schema_path.read_text(encoding="utf-8"))
+        example_path = ROOT_DIR / "schemas" / "output_example.json"
+        payload = json.loads(example_path.read_text(encoding="utf-8"))
+
+        errors = test_runner.validate_json_instance_against_schema(
+            {
+                **payload,
+                "emotional_arc": {
+                    **payload["emotional_arc"],
+                    "anchors": [
+                        "潮湿克制",
+                        "记忆翻涌",
+                        "副歌释放",
+                        "桥段留白",
+                        "尾声释怀",
+                        "额外尾声",
+                    ],
+                },
+            },
+            schema,
+        )
+
+        self.assertIn("$.emotional_arc.anchors: expected at most 5 items, got 6", errors)
+
+    def test_output_schema_rejects_more_than_five_lyric_sample_lines(self) -> None:
+        schema_path = ROOT_DIR / "schemas" / "output_schema.json"
+        schema = json.loads(schema_path.read_text(encoding="utf-8"))
+        example_path = ROOT_DIR / "schemas" / "output_example.json"
+        payload = json.loads(example_path.read_text(encoding="utf-8"))
+
+        errors = test_runner.validate_json_instance_against_schema(
+            {
+                **payload,
+                "lyric_direction": {
+                    **payload["lyric_direction"],
+                    "sample_lines": [
+                        *payload["lyric_direction"]["sample_lines"],
+                        {"section": "Verse", "text": "潮痕停在木牌背面。"},
+                        {"section": "Chorus", "text": "旧灯把夜色照成薄纸。"},
+                        {"section": "Outro", "text": "最后一班船没有回头。"},
+                    ],
+                },
+            },
+            schema,
+        )
+
+        self.assertIn("$.lyric_direction.sample_lines: expected at most 5 items, got 6", errors)
 
     def test_output_schema_rejects_empty_required_section_objects(self) -> None:
         schema_path = ROOT_DIR / "schemas" / "output_schema.json"
@@ -669,6 +722,26 @@ class EvaluateTests(unittest.TestCase):
         self.assertIsNone(result.output_path)
         self.assertIn("生成结果", warning_map)
         self.assertEqual(warning_map["生成结果"], "匹配路径不是文件: test_01.md")
+
+
+class MainTests(unittest.TestCase):
+    def test_main_validates_structured_examples_without_writing_report(self) -> None:
+        stdout = io.StringIO()
+
+        with patch.object(
+            sys,
+            "argv",
+            ["test_runner.py", "--validate-structured-examples", "--no-write-report"],
+        ):
+            with redirect_stdout(stdout):
+                exit_code = test_runner.main()
+
+        report = stdout.getvalue()
+        self.assertEqual(exit_code, 0)
+        self.assertIn("- Structured example checks: 2", report)
+        self.assertIn("input_example.json × input_schema.json", report)
+        self.assertIn("output_example.json × output_schema.json", report)
+        self.assertIn("- Overall status: **PASS**", report)
 
 
 if __name__ == "__main__":

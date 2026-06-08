@@ -206,9 +206,10 @@ const output = await skill.run({
 - `schemas/input_example.json`：完整演示 JSON 请求如何表达主题、情绪、词人人格和 `fusion`
 - `schemas/output_example.json`：对应的 10 段 JSON 响应，包含 `risk_check` 与融合模式下的 `fusion_notes`
 
-当前 schema 还额外收紧了 5 条最容易踩坑的嵌套合同：
+当前 schema 还额外收紧了 6 条最容易踩坑的嵌套合同：
 - 顶层和主要嵌套对象不接受未声明字段，能拦住拼错字段名或残留旧字段
 - `emotion` 不能是空对象；至少给 `start` 或 `end`
+- `emotional_arc.anchors` 和 `lyric_direction.sample_lines` 都限制为 3–5 项，与 Skill 输出模板一致
 - 输出第 4–8 段和第 10 段不能只传空对象；和声、旋律、歌词、编曲、Hook 与去相似化段落都必须包含最低可用字段
 - `lyric_direction.sample_lines[]` 的每一项都必须同时带 `section` 和 `text`
 - `de_similarization.actions[]` 的每一项都必须同时带 `target_section`、`issue` 和 `rewrite`
@@ -592,6 +593,12 @@ Intro 平均 4 小节，Outro 平均 8 小节。
 ## 附录：自动更新记录
 
 <!-- github-autopilot:updates:start -->
+
+### 2026-06-08
+
+- 将 `schemas/output_schema.json` 中情绪锚点和原创歌词示例的数量上限从 6 收紧到 5，与 `system_prompt.md` 和 schema 描述的 3–5 项合同保持一致。
+- `tests/test_test_runner.py` 新增两条边界回归，确保 6 项结构化输入会被拒绝；测试说明与 README 的 JSON 合同说明已同步。
+- 验证通过：37 个单测、20 个回归/结构化检查，总覆盖率 84%，Python 编译、JSON 解析和 `git diff --check` 均通过。
 
 ### 2026-06-07
 
