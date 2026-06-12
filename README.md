@@ -383,6 +383,7 @@ python3 test_runner.py --validate-structured-examples
 - ✓ 在预期应输出完整方案的场景里，第 9 段是否带 `PASS` / `WARN` / `BLOCK`
 - ✓ 在预期应输出完整方案的场景里，第 10 段是否给出明确处理方向
 - ✓ `test_01`–`test_06` 的关键场景规则，例如 `test_01` 只统计显式 `示例句` 列表项，`test_02` 的完整方案分支会检查 `轻 R&B / 小调都市感 / 电钢铺底 / 副歌 Pad 扩张 / 城市夜景` 5 项参数证据，`test_04` 会额外要求第 9 段显式给出 `和声相似度` 与 `Hook 相似度` 的 `PASS/BLOCK` 结论，此外还覆盖冷启动提问、复制请求拒绝、东方陈词黑名单，以及 v1.1 的词人人格 / 融合标记检查
+- ✓ 已保存输出若损坏或不是 UTF-8，会在报告中记为 `生成结果` 的 `FAIL`；批量模式继续检查其他文件，不会抛 traceback
 
 `schemas/input_schema.json` 和 `schemas/output_schema.json` 仍然保留，主要用于结构化集成和人工对照；当前 `test_runner.py` 不会直接对 markdown 输出执行通用 JSON Schema 校验。结构化输出里的 `risk_check.overall` 也与文档中的 Similarity Guard 保持一致，统一使用 `PASS` / `WARN` / `BLOCK`。
 如果你需要一个现成的结构化对接起点，可以直接复制 `schemas/input_example.json` 和 `schemas/output_example.json`；现在 `tests/test_test_runner.py` 会校验它们持续满足 schema 合同，并会覆盖顶层和主要嵌套对象的未知字段拒绝规则，`python3 test_runner.py --validate-structured-examples` 也可以在 CLI 里显式跑这组检查。
@@ -413,6 +414,7 @@ python3 test_runner.py --output-dir ./generated_outputs
 # 融合说明默认是第 10 段后的附加说明；若继续编号成 `### 11.` / `#### 11. 融合说明 / Fusion Notes`，也会被视为合法
 # 目录中的文件名需对应为 test_01.md、test_02.md ...
 # 如果某个同名路径其实是目录而不是 markdown 文件，报告会给 WARN，不会抛 traceback
+# 如果某个输出文件损坏或不是 UTF-8，报告会给 `生成结果` FAIL，并继续检查其他文件
 # --output-dir 必须是已存在目录；路径写错时脚本会直接报错退出
 # 同样地，--test 目标文件不存在或不是文件时也会直接报错退出
 
@@ -594,6 +596,18 @@ Intro 平均 4 小节，Outro 平均 8 小节。
 ## 附录：自动更新记录
 
 <!-- github-autopilot:updates:start -->
+
+### 2026-06-12 13:00
+
+修复了 `test_runner.py` 的无人值守稳定性问题：[test_runner.py](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.py:498) 现在会将损坏或非 UTF-8 输出记录为 `FAIL`，而不是抛 traceback；批量校验会继续处理其他文件。新增了[回归测试](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/tests/test_test_runner.py:395)，并同步更新 [README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:600)、`README-GITHUB.md` 和 [test_runner.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/test_runner.md:26)。
+
+验证通过：38 个单测、20 个回归/结构化检查、Python 编译、JSON 解析、敏感信息扫描及 `git diff --check`。定向批量测试确认损坏文件返回失败、后续文件继续执行。未提交、未推送。
+
+### 2026-06-12
+
+- 修复 `test_runner.py` 读取已保存输出时的稳定性缺口：文件存在但损坏或不是 UTF-8 时，现在会在报告中记录 `生成结果` 的 `FAIL`，不再抛 `UnicodeDecodeError` traceback。
+- `--output-dir` 批量校验会继续处理剩余文件；`tests/test_test_runner.py` 新增非法 UTF-8 回归测试，`test_runner.md` 同步说明编码要求和失败行为。
+- 验证通过：38 个单测、20 个回归/结构化检查、Python 编译和 `git diff --check`。未提交，未推送。
 
 ### 2026-06-08 17:44
 

@@ -23,6 +23,8 @@
 - `--report-file`：自定义 markdown 报告输出位置。父目录必须已存在，目标不能是目录
 - `--validate-structured-examples`：额外检查 `schemas/input_example.json` 和 `schemas/output_example.json` 是否通过仓库内建的 JSON Schema 子集校验
 
+已保存的 markdown 输出需要使用 UTF-8 编码。遇到无法解码或读取失败的文件时，脚本会在报告中记录 `生成结果` 的 `FAIL`；`--output-dir` 批量模式会继续处理其他文件，不会因单个损坏文件抛 traceback。
+
 内建 JSON Schema 子集现在会检查 `type`、`enum`、`required`、`minItems` / `maxItems`、`minimum` / `maximum`、`oneOf`、`anyOf` 和 `additionalProperties`。两份结构化 schema 的顶层和主要嵌套对象已设置为不接受未声明字段，避免示例里出现拼写错误或旧字段时仍被判通过。输出 schema 还要求第 4–8 段和第 10 段包含各自的最低可用字段，不再接受 `chord_direction: {}`、`hook_concept: {}` 或 `de_similarization: {}` 这类只有段落名、没有实际内容的对象；`emotional_arc.anchors` 和 `lyric_direction.sample_lines` 也都严格限制为 3–5 项，与 `system_prompt.md` 的输出模板一致。
 
 通用检查包括（仅适用于**预期应输出完整 10 段方案**的场景）：
@@ -76,6 +78,7 @@ python3 test_runner.py --test test_04.md --output ./generated_outputs/test_04.md
 # 4) 批量检查目录下所有已保存输出
 python3 test_runner.py --output-dir ./generated_outputs
 # --output-dir 必须是已存在目录
+# 输出文件需要是 UTF-8；损坏或非 UTF-8 文件会在报告中记为 `生成结果` FAIL，并继续检查其他文件
 # 如果目录里的 `test_02.md` 是澄清问题响应，或 `test_05.md` 是首轮冷启动提问，脚本会按对应规则校验，不强制要求 10 段
 # 如果 `test_02.md` 走的是完整方案分支，脚本还会检查 5 个输入参数是否都在输出里有明确证据
 # 如果某个同名路径存在但它其实是目录而不是文件，报告会给 `生成结果` 的 `WARN`，不会抛 traceback
@@ -107,7 +110,8 @@ generated_outputs/
   test_06.md
 ```
 
-如果目录存在但某个文件不存在，或同名路径其实是目录而不是文件，报告里会给出 `生成结果` 的 `WARN`，但不会中断其他用例。  
+如果目录存在但某个文件不存在，或同名路径其实是目录而不是文件，报告里会给出 `生成结果` 的 `WARN`，但不会中断其他用例。文件存在但无法按 UTF-8 解码或读取时，会给出 `生成结果` 的 `FAIL`，并继续处理剩余用例。
+
 如果 `--test`、`--output`、`--output-dir` 或 `--report-file` 的路径本身不合法，脚本会直接报错退出，避免 traceback 或误导性的通过报告。
 
 ## 报告格式

@@ -392,6 +392,26 @@ class ValidateOutputForTestTests(unittest.TestCase):
         output_path.write_text(body, encoding="utf-8")
         return output_path
 
+    def test_invalid_utf8_output_becomes_failure_instead_of_traceback(self) -> None:
+        spec = test_runner.load_test_case(ROOT_DIR / "test_cases" / "test_01.md")
+        temp_dir = tempfile.TemporaryDirectory()
+        self.addCleanup(temp_dir.cleanup)
+        output_path = Path(temp_dir.name) / "output.md"
+        output_path.write_bytes(b"\xff\xfe\x00")
+
+        checks = test_runner.validate_output_for_test(spec, output_path)
+
+        self.assertEqual(
+            checks,
+            [
+                test_runner.CheckResult(
+                    "FAIL",
+                    "生成结果",
+                    "无法按 UTF-8 读取输出文件 `output.md`。",
+                )
+            ],
+        )
+
     def test_test_01_metadata_bullets_do_not_count_as_lyric_sample_lines(self) -> None:
         spec = test_runner.load_test_case(ROOT_DIR / "test_cases" / "test_01.md")
         output_path = self.write_output(

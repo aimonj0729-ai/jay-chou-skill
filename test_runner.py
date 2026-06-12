@@ -496,7 +496,25 @@ def should_run_generic_output_checks(spec: TestCaseSpec, sections: dict[int, str
 
 
 def validate_output_for_test(spec: TestCaseSpec, output_path: Path) -> list[CheckResult]:
-    text = output_path.read_text(encoding="utf-8")
+    try:
+        text = output_path.read_text(encoding="utf-8")
+    except UnicodeError:
+        return [
+            CheckResult(
+                "FAIL",
+                "生成结果",
+                f"无法按 UTF-8 读取输出文件 `{output_path.name}`。",
+            )
+        ]
+    except OSError as exc:
+        return [
+            CheckResult(
+                "FAIL",
+                "生成结果",
+                f"无法读取输出文件 `{output_path.name}`: {exc.strerror or exc}",
+            )
+        ]
+
     sections = parse_numbered_sections(text)
     checks = validate_generic_output(text) if should_run_generic_output_checks(spec, sections) else []
 
