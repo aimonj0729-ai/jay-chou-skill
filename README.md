@@ -386,7 +386,7 @@ python3 test_runner.py --validate-structured-examples
 - ✓ 已保存输出若损坏或不是 UTF-8，会在报告中记为 `生成结果` 的 `FAIL`；批量模式继续检查其他文件，不会抛 traceback
 
 `schemas/input_schema.json` 和 `schemas/output_schema.json` 仍然保留，主要用于结构化集成和人工对照；当前 `test_runner.py` 不会直接对 markdown 输出执行通用 JSON Schema 校验。结构化输出里的 `risk_check.overall` 也与文档中的 Similarity Guard 保持一致，统一使用 `PASS` / `WARN` / `BLOCK`。
-如果你需要一个现成的结构化对接起点，可以直接复制 `schemas/input_example.json` 和 `schemas/output_example.json`；现在 `tests/test_test_runner.py` 会校验它们持续满足 schema 合同，并会覆盖顶层和主要嵌套对象的未知字段拒绝规则，`python3 test_runner.py --validate-structured-examples` 也可以在 CLI 里显式跑这组检查。
+如果你需要一个现成的结构化对接起点，可以直接复制 `schemas/input_example.json` 和 `schemas/output_example.json`；现在 `tests/test_test_runner.py` 会校验它们持续满足 schema 合同，并会覆盖顶层和主要嵌套对象的未知字段拒绝规则。内建校验也支持 `minLength` / `maxLength`，因此空的 `theme`、情绪锚点、`reference_mood` 或 `song_concept` 不会再被当作有效内容。`python3 test_runner.py --validate-structured-examples` 可以在 CLI 里显式跑这组检查。
 
 **可集成 CI/CD**：
 ```bash
@@ -596,6 +596,12 @@ Intro 平均 4 小节，Outro 平均 8 小节。
 ## 附录：自动更新记录
 
 <!-- github-autopilot:updates:start -->
+
+### 2026-06-13
+
+收紧了结构化 JSON 的关键文本合同：空字符串不再能绕过输入冷启动或充当输出核心概念。`test_runner.py` 的内建 schema 校验器新增 `minLength` / `maxLength` 支持，`input_schema.json` 会拒绝空的主题、情绪起止点和参考画面，`output_schema.json` 会拒绝空的 `song_concept`。
+
+新增两条回归测试，并同步更新 `README-GITHUB.md` 与 `test_runner.md`。验证覆盖完整单测、结构化示例、Python 编译、JSON 解析和差异检查。
 
 ### 2026-06-12 13:00
 

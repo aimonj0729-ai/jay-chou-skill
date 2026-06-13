@@ -111,6 +111,40 @@ class OutputSchemaContractTests(unittest.TestCase):
 
 
 class StructuredExampleFilesTests(unittest.TestCase):
+    def test_min_length_rejects_empty_strings(self) -> None:
+        errors = test_runner.validate_json_instance_against_schema(
+            "",
+            {"type": "string", "minLength": 1},
+        )
+
+        self.assertEqual(errors, ["$: expected at least 1 characters, got 0"])
+
+    def test_bundled_schemas_reject_empty_required_content(self) -> None:
+        input_schema = json.loads(
+            (ROOT_DIR / "schemas" / "input_schema.json").read_text(encoding="utf-8")
+        )
+        output_schema = json.loads(
+            (ROOT_DIR / "schemas" / "output_schema.json").read_text(encoding="utf-8")
+        )
+        output_payload = json.loads(
+            (ROOT_DIR / "schemas" / "output_example.json").read_text(encoding="utf-8")
+        )
+
+        input_errors = test_runner.validate_json_instance_against_schema(
+            {"theme": ""},
+            input_schema,
+        )
+        output_errors = test_runner.validate_json_instance_against_schema(
+            {**output_payload, "song_concept": ""},
+            output_schema,
+        )
+
+        self.assertIn("$.theme: expected at least 1 characters, got 0", input_errors)
+        self.assertIn(
+            "$.song_concept: expected at least 1 characters, got 0",
+            output_errors,
+        )
+
     def test_input_example_documents_json_mode_fusion_request(self) -> None:
         example_path = ROOT_DIR / "schemas" / "input_example.json"
         payload = json.loads(example_path.read_text(encoding="utf-8"))

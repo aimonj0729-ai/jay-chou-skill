@@ -20,6 +20,7 @@
   "properties": {
     "song_concept": {
       "type": "string",
+      "minLength": 1,
       "description": "1. 核心概念。一句话说清这首歌在讲什么、给谁听、带什么体验。"
     },
     "emotional_arc": {

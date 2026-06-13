@@ -8,6 +8,7 @@
   "properties": {
     "theme": {
       "type": "string",
+      "minLength": 1,
       "description": "一句话说清主题。例：'毕业前夜'、'深夜出租车'、'梅雨季的独处'。"
     },
     "emotion": {
@@ -17,10 +18,12 @@
       "properties": {
         "start": {
           "type": "string",
+          "minLength": 1,
           "examples": ["克制", "内敛", "平静", "压抑", "孤独"]
         },
         "end": {
           "type": "string",
+          "minLength": 1,
           "examples": ["释怀", "释放", "告别", "坦然", "感伤"]
         }
       },
@@ -80,6 +83,7 @@
     },
     "reference_mood": {
       "type": "string",
+      "minLength": 1,
       "description": "情绪/画面参考。一句话描述想让听众处于什么场景。例：'深夜独自走过便利店的那一瞬'。"
     },
     "hard_constraints": {
