@@ -151,55 +151,39 @@ Outro: 逐轨减，Piano 单音 + Strings 长尾，最后 2 小节静默
 
 ### 前置要求
 
-- Claude Code CLI (v0.5.0+)
-- 能访问本地文件系统 (skill 文件在 `~/.claude/skills/`)
+- 已安装并能启动 [Claude Code](https://code.claude.com/docs/en/overview)
+- 能写入用户级 Skill 目录 `~/.claude/skills/`
 
 ### 安装步骤
 
 ```bash
-# 1. 克隆这个仓库到本地
+# 1. 克隆到 Claude Code 的用户级 Skill 目录
 git clone https://github.com/aimonj0729-ai/jay-chou-skill.git ~/.claude/skills/jay-chou
 
-# 2. 验证安装
-claude skill list | grep jay-chou
-# 应该看到: jay-chou  周杰伦风格华语流行音乐创作助手
+# 2. 确认 Skill 入口文件存在
+test -f ~/.claude/skills/jay-chou/SKILL.md && echo "jay-chou skill installed"
 
-# 3. 完成！现在你可以开始创作了
+# 3. 启动一个新的 Claude Code 会话
+claude
 ```
 
-### 启动 Skill 的三种方式
+Claude Code 会在会话启动时发现 `~/.claude/skills/jay-chou/SKILL.md`。如果安装时已经打开了 Claude Code，请退出后重新启动会话。
 
-**方式 1：显式调用**
-```bash
-# 进入任何项目目录
-claude
+### 启动 Skill 的两种方式
 
-# 在对话里输入
+**方式 1：在 Claude Code 会话中显式调用**
+```text
 /jay-chou 写一首关于深夜独处的周杰伦风格歌，钢琴主导，情绪克制
 ```
 
 **方式 2：自然语言触发**
-```bash
-# 直接说
-claude write me a Jay Chou style song about graduation night
-
-# Claude 会自动识别并加载 jay-chou skill
+```text
+写一首关于毕业前夜的周杰伦风格歌，钢琴开头，情绪从克制到释怀
 ```
 
-**方式 3：在代码里调用**
-```javascript
-// 如果你在自己的 AI 应用里想用这个 skill
-const skill = await claude.skills.load('jay-chou');
-const output = await skill.run({
-  theme: '毕业前夜',
-  emotion: { start: '克制', end: '释怀' },
-  genre_tags: ['钢琴抒情流行', '轻 R&B'],
-  instruments: ['acoustic-piano', 'rhodes-ep', 'strings'],
-  output_format: 'markdown' // or 'json'
-});
-```
+Claude Code 会根据 `SKILL.md` 的 `description` 判断是否自动加载该 Skill。官方技能机制与目录约定见 [Claude Code Skills 文档](https://code.claude.com/docs/en/skills)。
 
-如果切到 `output_format: 'json'`，`risk_check` 里的状态标签也和 markdown 第 9 段保持同一套枚举：`PASS` / `WARN` / `BLOCK`。融合模式下可额外返回 `fusion_notes`。
+仓库同时提供结构化输入/输出合同，供你在自己的 Agent SDK 或自动化中实现调用；它们是 JSON Schema 示例，不是 Claude Code 内置的 `claude.skills.load()` JavaScript API。如果使用 `output_format: "json"`，`risk_check` 里的状态标签与 markdown 第 9 段保持同一套枚举：`PASS` / `WARN` / `BLOCK`。融合模式下可额外返回 `fusion_notes`。
 `fusion_notes` 对应 markdown 里的附加 `Fusion Notes` / `融合说明`；默认不计入 10 段正文，如果你想继续编号，写成 `### 11. 融合说明` 或更深的 markdown 标题层级也算合法。
 
 如果你准备直接接结构化输出，仓库里现在有一对可复制的样例：
@@ -596,6 +580,32 @@ Intro 平均 4 小节，Outro 平均 8 小节。
 ## 附录：自动更新记录
 
 <!-- github-autopilot:updates:start -->
+
+### 2026-06-14 09:34
+
+修复了 README 中不可执行的安装说明：
+
+- 移除不存在的 `claude skill list` 和 `claude.skills.load()` 示例。
+- 改为官方的 `~/.claude/skills/jay-chou/SKILL.md` 安装方式及 `/jay-chou` 调用。
+- 同步更新 `README.md`、`README-GITHUB.md`，并在主 README 文末追加更新记录。
+- 新增文档回归测试，防止伪接口再次出现。
+
+验证通过：
+
+- 41 个单元测试
+- 20 个回归及结构化示例检查
+- Python 编译
+- `git diff --check`
+
+参考：[Claude Code Skills 官方文档](https://code.claude.com/docs/en/skills)
+
+未提交，未推送。
+
+### 2026-06-14
+
+- 修正安装与调用文档：移除 Claude Code 并不存在的 `claude skill list` 和 `claude.skills.load()` 示例，改为官方的文件系统 Skill 安装方式。
+- 安装流程现在会验证 `~/.claude/skills/jay-chou/SKILL.md`，并明确需要在新会话中用 `/jay-chou` 或自然语言触发。
+- 新增 README 回归测试，防止两个公开 README 再次引入伪 CLI / SDK 接口。
 
 ### 2026-06-13
 

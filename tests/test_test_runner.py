@@ -778,6 +778,19 @@ class EvaluateTests(unittest.TestCase):
         self.assertEqual(warning_map["生成结果"], "匹配路径不是文件: test_01.md")
 
 
+class ReadmeInstallationDocsTests(unittest.TestCase):
+    def test_readmes_document_filesystem_skill_installation_without_fake_apis(self) -> None:
+        for filename in ("README.md", "README-GITHUB.md"):
+            with self.subTest(filename=filename):
+                content = (ROOT_DIR / filename).read_text(encoding="utf-8")
+                install_section = content.split("## 📦 安装与使用", 1)[1].split("### 玩法 4", 1)[0]
+
+                self.assertIn("~/.claude/skills/jay-chou/SKILL.md", install_section)
+                self.assertIn("/jay-chou", install_section)
+                self.assertNotIn("claude skill list", install_section)
+                self.assertNotIn("const skill = await claude.skills.load", install_section)
+
+
 class MainTests(unittest.TestCase):
     def test_main_validates_structured_examples_without_writing_report(self) -> None:
         stdout = io.StringIO()
