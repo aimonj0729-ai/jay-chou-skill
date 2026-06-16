@@ -581,6 +581,26 @@ Intro 平均 4 小节，Outro 平均 8 小节。
 
 <!-- github-autopilot:updates:start -->
 
+### 2026-06-16 15:41
+
+已完成一项小的开发体验改进：在 [.gitignore](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/.gitignore:3) 补充忽略本地验证产物，包括 `test-report.md`、`reports/`、`.pytest_cache/`、`.coverage` 和 `htmlcov/`，避免运行 README 里的验证命令后污染 Git 状态。同步在 [README.md](/Users/aimon/Desktop/claude%20code%20test/.cache/github-autopilot/repos/aimonj0729-ai__jay-chou-skill/README.md:584) 文末附录记录了本次自动更新。
+
+验证已跑并通过：
+- `python3 -m unittest discover -s tests -v`：41 tests OK
+- `python3 test_runner.py --validate-structured-examples --no-write-report`：20 checks, 0 warnings, 0 failed
+- `python3 test_runner.py`：默认报告生成成功且被忽略
+- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
+- `git check-ignore ...`
+- `git diff --check`
+
+未提交，未推送。
+
+### 2026-06-16
+
+本次只做了一项小的开发体验改进：补齐 `.gitignore` 对本地验证产物的覆盖。`python3 test_runner.py` 默认会生成 `test-report.md`，单测和后续 pytest/coverage 工作流也可能留下缓存或覆盖率目录；现在这些本地文件会被忽略，避免按 README 运行验证命令后污染 Git 状态。
+
+同步更新了主 README 文末附录。验证已跑：`python3 -m unittest discover -s tests -v`、`python3 test_runner.py --validate-structured-examples --no-write-report`、`python3 -m py_compile test_runner.py tests/test_test_runner.py`、`git check-ignore test-report.md .pytest_cache/foo .coverage htmlcov/index.html reports/jay-chou-test-report.md`。未提交，未推送。
+
 ### 2026-06-14 09:34
 
 修复了 README 中不可执行的安装说明：
