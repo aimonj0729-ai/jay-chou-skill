@@ -593,13 +593,13 @@ Intro 平均 4 小节，Outro 平均 8 小节。
 - `git check-ignore ...`
 - `git diff --check`
 
-未提交，未推送。
+已由 GitHub autopilot 自动提交并推送到 `main`。
 
 ### 2026-06-16
 
 本次只做了一项小的开发体验改进：补齐 `.gitignore` 对本地验证产物的覆盖。`python3 test_runner.py` 默认会生成 `test-report.md`，单测和后续 pytest/coverage 工作流也可能留下缓存或覆盖率目录；现在这些本地文件会被忽略，避免按 README 运行验证命令后污染 Git 状态。
 
-同步更新了主 README 文末附录。验证已跑：`python3 -m unittest discover -s tests -v`、`python3 test_runner.py --validate-structured-examples --no-write-report`、`python3 -m py_compile test_runner.py tests/test_test_runner.py`、`git check-ignore test-report.md .pytest_cache/foo .coverage htmlcov/index.html reports/jay-chou-test-report.md`。未提交，未推送。
+同步更新了主 README 文末附录。验证已跑：`python3 -m unittest discover -s tests -v`、`python3 test_runner.py --validate-structured-examples --no-write-report`、`python3 -m py_compile test_runner.py tests/test_test_runner.py`、`git check-ignore test-report.md .pytest_cache/foo .coverage htmlcov/index.html reports/jay-chou-test-report.md`。随后由 GitHub autopilot 自动提交并推送到 `main`。
 
 ### 2026-06-14 09:34
 
