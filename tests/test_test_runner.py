@@ -810,6 +810,38 @@ class MainTests(unittest.TestCase):
         self.assertIn("output_example.json × output_schema.json", report)
         self.assertIn("- Overall status: **PASS**", report)
 
+    def test_main_structured_only_skips_test_case_suite(self) -> None:
+        stdout = io.StringIO()
+
+        with patch.object(
+            sys,
+            "argv",
+            ["test_runner.py", "--structured-only", "--no-write-report"],
+        ):
+            with redirect_stdout(stdout):
+                exit_code = test_runner.main()
+
+        report = stdout.getvalue()
+        self.assertEqual(exit_code, 0)
+        self.assertIn("- Total tests: 0", report)
+        self.assertIn("- Structured example checks: 2", report)
+        self.assertIn("## Structured JSON Examples", report)
+        self.assertNotIn("## Test 01", report)
+
+    def test_main_structured_only_rejects_test_case_args(self) -> None:
+        with patch.object(
+            sys,
+            "argv",
+            ["test_runner.py", "--structured-only", "--test", "test_01.md", "--no-write-report"],
+        ):
+            with self.assertRaises(SystemExit) as context:
+                test_runner.main()
+
+        self.assertEqual(
+            str(context.exception),
+            "--structured-only cannot be combined with --test, --output, or --output-dir.",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

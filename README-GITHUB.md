@@ -200,7 +200,7 @@ Claude Code 会根据 `SKILL.md` 的 `description` 判断是否自动加载该 S
 
 如果你想确认这两份样例没有和 schema 漂移，可以直接运行：
 ```bash
-python3 test_runner.py --validate-structured-examples
+python3 test_runner.py --structured-only
 ```
 
 ### 玩法 4：指定词人风格（词人人格模式）🆕
@@ -407,7 +407,12 @@ python3 test_runner.py --report-file ./reports/jay-chou-test-report.md
 
 python3 test_runner.py --validate-structured-examples
 # 对仓库自带的 input/output JSON example 执行内建 schema 子集校验
+# 并把结果追加到完整 test_cases 回归报告后
+
+python3 test_runner.py --structured-only
+# 只检查仓库自带的 input/output JSON example，不扫描 test_cases/
 # 适合在修改 schemas/*.json 或 *_example.json 后快速确认合同没有漂移
+# 不能和 --test、--output 或 --output-dir 混用
 ```
 
 ### 4. 多层次抽象架构

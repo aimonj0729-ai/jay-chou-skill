@@ -111,6 +111,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Also validate schemas/input_example.json and schemas/output_example.json against the bundled schema subset checks.",
     )
+    parser.add_argument(
+        "--structured-only",
+        action="store_true",
+        help="Only validate the bundled structured JSON examples. Cannot be combined with --test, --output, or --output-dir.",
+    )
     return parser.parse_args()
 
 
@@ -734,10 +739,17 @@ def build_report(
 
 def main() -> int:
     args = parse_args()
-    specs = resolve_test_cases(args.test)
+    if args.structured_only and (args.test or args.output or args.output_dir):
+        raise SystemExit("--structured-only cannot be combined with --test, --output, or --output-dir.")
+
+    specs = [] if args.structured_only else resolve_test_cases(args.test)
     output_path, output_dir = resolve_cli_paths(args, specs)
     results = evaluate(specs, output_path, output_dir)
-    structured_example_checks = validate_structured_examples() if args.validate_structured_examples else ()
+    structured_example_checks = (
+        validate_structured_examples()
+        if args.validate_structured_examples or args.structured_only
+        else ()
+    )
     report = build_report(results, structured_example_checks=structured_example_checks)
 
     if not args.no_write_report:

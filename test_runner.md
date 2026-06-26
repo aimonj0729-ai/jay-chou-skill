@@ -1,6 +1,6 @@
 # Test Runner —— 回归套件与输出校验
 
-> `test_runner.py` 的主职责是校验 `test_cases/` 回归套件本身，以及校验你已经保存到本地的生成结果；现在还可以额外用 `--validate-structured-examples` 检查仓库内置的 JSON 示例是否仍然符合 schema 合同。
+> `test_runner.py` 的主职责是校验 `test_cases/` 回归套件本身，以及校验你已经保存到本地的生成结果；现在还可以用 `--validate-structured-examples` 把仓库内置 JSON 示例追加进报告，或用 `--structured-only` 只检查这组 schema 合同。
 
 ## 它实际会做什么
 
@@ -22,6 +22,7 @@
 - `--output-dir`：批量校验一个目录里的输出文件。目录必须已存在
 - `--report-file`：自定义 markdown 报告输出位置。父目录必须已存在，目标不能是目录
 - `--validate-structured-examples`：额外检查 `schemas/input_example.json` 和 `schemas/output_example.json` 是否通过仓库内建的 JSON Schema 子集校验
+- `--structured-only`：只检查内置 JSON example 与 schema，不扫描 `test_cases/`；不能和 `--test`、`--output` 或 `--output-dir` 混用
 
 已保存的 markdown 输出需要使用 UTF-8 编码。遇到无法解码或读取失败的文件时，脚本会在报告中记录 `生成结果` 的 `FAIL`；`--output-dir` 批量模式会继续处理其他文件，不会因单个损坏文件抛 traceback。
 
@@ -92,7 +93,12 @@ python3 test_runner.py --validate-structured-examples
 # 结果会在报告里追加一个 Structured JSON Examples 小节
 # 适合在修改 schemas/*.json 或 *_example.json 后做快速回归
 
-# 7) 只打印报告，不写 test-report.md
+# 7) 只检查结构化 JSON example，不扫描 test_cases/
+python3 test_runner.py --structured-only
+# 适合只改了 schemas/*.json 或 *_example.json 时做低噪声校验
+# --structured-only 不能和 --test、--output 或 --output-dir 混用
+
+# 8) 只打印报告，不写 test-report.md
 python3 test_runner.py --no-write-report
 ```
 
@@ -143,7 +149,7 @@ generated_outputs/
 1. 先运行 `python3 test_runner.py`，确认 `test_cases/` 本身没有退化。
 2. 在 Claude/Codex 里按 `test_cases/*.md` 逐条生成输出，并保存成 `test_01.md` 这类文件名。
 3. 再运行 `python3 test_runner.py --output-dir ./generated_outputs`，检查 10 段结构、Similarity Guard、冷启动/拒绝行为，以及 v1.1 的词人人格 + 融合标记规则。
-4. 如果你刚改过 `schemas/*.json` 或 `*_example.json`，再跑 `python3 test_runner.py --validate-structured-examples`，确认结构化样例没有漂移。
+4. 如果你刚改过 `schemas/*.json` 或 `*_example.json`，再跑 `python3 test_runner.py --structured-only`，确认结构化样例没有漂移；如果想把结构化检查附加到完整回归报告里，用 `--validate-structured-examples`。
 5. 如需聚焦单个问题，用 `--test` + `--output` 缩小范围。
 
 ## CI 示例
@@ -165,8 +171,8 @@ jobs:
         run: python3 test_runner.py
 ```
 
-如果你的 CI 流水线里还保存了模型生成结果，也可以在后续步骤里继续跑 `--output-dir`；如果你也维护结构化 JSON 示例，再补一条 `python3 test_runner.py --validate-structured-examples` 会更稳。
+如果你的 CI 流水线里还保存了模型生成结果，也可以在后续步骤里继续跑 `--output-dir`；如果你也维护结构化 JSON 示例，再补一条 `python3 test_runner.py --structured-only` 会更稳。
 
 ---
 
-**交付标准**：`test_runner.md` 描述的命令、输出和限制应与 `test_runner.py` 的真实行为保持一致，包括 `--validate-structured-examples` 的能力边界。
+**交付标准**：`test_runner.md` 描述的命令、输出和限制应与 `test_runner.py` 的真实行为保持一致，包括 `--validate-structured-examples` 和 `--structured-only` 的能力边界。

@@ -200,7 +200,7 @@ Claude Code 会根据 `SKILL.md` 的 `description` 判断是否自动加载该 S
 
 如果你想确认这两份样例没有和 schema 漂移，可以直接运行：
 ```bash
-python3 test_runner.py --validate-structured-examples
+python3 test_runner.py --structured-only
 ```
 
 ### 玩法 4：指定词人风格（词人人格模式）🆕
@@ -408,7 +408,12 @@ python3 test_runner.py --report-file ./reports/jay-chou-test-report.md
 
 python3 test_runner.py --validate-structured-examples
 # 对仓库自带的 input/output JSON example 执行内建 schema 子集校验
+# 并把结果追加到完整 test_cases 回归报告后
+
+python3 test_runner.py --structured-only
+# 只检查仓库自带的 input/output JSON example，不扫描 test_cases/
 # 适合在修改 schemas/*.json 或 *_example.json 后快速确认合同没有漂移
+# 不能和 --test、--output 或 --output-dir 混用
 ```
 
 ### 4. 多层次抽象架构
@@ -580,6 +585,26 @@ Intro 平均 4 小节，Outro 平均 8 小节。
 ## 附录：自动更新记录
 
 <!-- github-autopilot:updates:start -->
+
+### 2026-06-26 11:27
+
+已完成一项小而完整的开发体验改进，已由 GitHub autopilot 在验证后自动发布。
+
+改动内容：
+- `test_runner.py` 新增 `--structured-only`，只校验 `schemas/input_example.json` / `schemas/output_example.json` 与 schema 的合同，不再扫描 `test_cases/`。
+- 增加互斥校验：`--structured-only` 不能和 `--test`、`--output`、`--output-dir` 混用。
+- `tests/test_test_runner.py` 补了对应回归测试。
+- 同步更新 `README.md` 文末附录、`README-GITHUB.md`、`test_runner.md` 的命令说明。
+
+验证已跑：
+- `python3 -m unittest discover -s tests`：43 tests passed
+- `python3 test_runner.py --structured-only --no-write-report`：2 checks passed
+- `python3 test_runner.py --no-write-report --validate-structured-examples`：20 checks passed
+- `python3 test_runner.py --structured-only --test test_01.md --no-write-report`：按预期返回互斥参数错误
+- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
+- `git diff --check`
+
+当前改动文件：`README.md`、`README-GITHUB.md`、`test_runner.md`、`test_runner.py`、`tests/test_test_runner.py`。
 
 ### 2026-06-16 15:41
 
@@ -1175,5 +1200,11 @@ README 也同步了这次变化：主 [README.md](/Users/aimon/Desktop/claude co
 修复结构化输出 schema 会接受空段落对象的问题。此前顶层虽要求第 4–8 段和第 10 段存在，但 `chord_direction: {}`、`hook_concept: {}`、`de_similarization: {}` 等没有实际内容的对象仍会通过校验。现在这些段落分别要求最低可用字段，避免“形式上有 10 段、实际上缺内容”的半残 JSON 被接入方误收。
 
 对应回归测试已补到 `tests/test_test_runner.py`，并同步更新主 README、`README-GITHUB.md` 与 `test_runner.md` 的结构化合同说明。验证已通过：34 个单测通过；`python3 test_runner.py --no-write-report --validate-structured-examples` 完成 20 个检查，0 warning、0 fail；Python 编译、JSON 解析和 `git diff --check` 均通过。未提交，未推送。
+
+### 2026-06-26
+
+这次只做了一项小的开发体验改进：`test_runner.py` 新增 `--structured-only`，用于只校验 `schemas/input_example.json` 和 `schemas/output_example.json` 是否仍符合内建 schema 子集，不再为了这类结构化样例改动额外扫描 `test_cases/`。`--validate-structured-examples` 仍保留为“完整回归报告 + 结构化样例检查”的模式；`--structured-only` 会拒绝和 `--test`、`--output`、`--output-dir` 混用，避免命令语义含糊。
+
+对应回归测试已补到 `tests/test_test_runner.py`，并同步更新主 README、`README-GITHUB.md` 与 `test_runner.md` 的命令说明。验证已跑：`python3 -m unittest discover -s tests`、`python3 test_runner.py --structured-only --no-write-report`、`python3 test_runner.py --no-write-report --validate-structured-examples`、`python3 -m py_compile test_runner.py tests/test_test_runner.py`、`git diff --check` 均通过；`python3 test_runner.py --structured-only --test test_01.md --no-write-report` 按预期返回互斥参数错误。未提交，未推送。
 
 <!-- github-autopilot:updates:end -->
