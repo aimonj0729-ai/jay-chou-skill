@@ -1205,6 +1205,6 @@ README 也同步了这次变化：主 [README.md](/Users/aimon/Desktop/claude co
 
 这次只做了一项小的开发体验改进：`test_runner.py` 新增 `--structured-only`，用于只校验 `schemas/input_example.json` 和 `schemas/output_example.json` 是否仍符合内建 schema 子集，不再为了这类结构化样例改动额外扫描 `test_cases/`。`--validate-structured-examples` 仍保留为“完整回归报告 + 结构化样例检查”的模式；`--structured-only` 会拒绝和 `--test`、`--output`、`--output-dir` 混用，避免命令语义含糊。
 
-对应回归测试已补到 `tests/test_test_runner.py`，并同步更新主 README、`README-GITHUB.md` 与 `test_runner.md` 的命令说明。验证已跑：`python3 -m unittest discover -s tests`、`python3 test_runner.py --structured-only --no-write-report`、`python3 test_runner.py --no-write-report --validate-structured-examples`、`python3 -m py_compile test_runner.py tests/test_test_runner.py`、`git diff --check` 均通过；`python3 test_runner.py --structured-only --test test_01.md --no-write-report` 按预期返回互斥参数错误。未提交，未推送。
+对应回归测试已补到 `tests/test_test_runner.py`，并同步更新主 README、`README-GITHUB.md` 与 `test_runner.md` 的命令说明。验证已跑：`python3 -m unittest discover -s tests`、`python3 test_runner.py --structured-only --no-write-report`、`python3 test_runner.py --no-write-report --validate-structured-examples`、`python3 -m py_compile test_runner.py tests/test_test_runner.py`、`git diff --check` 均通过；`python3 test_runner.py --structured-only --test test_01.md --no-write-report` 按预期返回互斥参数错误。已由 GitHub autopilot 自动发布到 `main`。
 
 <!-- github-autopilot:updates:end -->
