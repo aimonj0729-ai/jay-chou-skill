@@ -1231,6 +1231,6 @@ README 也同步了这次变化：主 [README.md](/Users/aimon/Desktop/claude co
 
 原因是 `--structured-only` 的定位是低噪声快速检查 `schemas/input_example.json` / `schemas/output_example.json` 与 schema 是否漂移；默认写报告会给只改 schema 的维护者带来不必要的工作区文件。同步更新了 `tests/test_test_runner.py`、`test_runner.md`、主 README 和 `README-GITHUB.md` 的命令说明。
 
-验证已跑并通过：`python3 -m unittest discover -s tests`、`python3 test_runner.py --no-write-report`、`python3 test_runner.py --no-write-report --validate-structured-examples`、`python3 -m py_compile test_runner.py tests/test_test_runner.py`、`git diff --check`，并用临时目录确认 `python3 test_runner.py --structured-only` 默认不写 `test-report.md`、显式 `--report-file` 仍会写报告。未提交，未推送。
+验证已跑并通过：`python3 -m unittest discover -s tests`、`python3 test_runner.py --no-write-report`、`python3 test_runner.py --no-write-report --validate-structured-examples`、`python3 -m py_compile test_runner.py tests/test_test_runner.py`、`git diff --check`，并用临时目录确认 `python3 test_runner.py --structured-only` 默认不写 `test-report.md`、显式 `--report-file` 仍会写报告。已由 GitHub autopilot 自动发布到 `main`。
 
 <!-- github-autopilot:updates:end -->
