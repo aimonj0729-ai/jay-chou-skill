@@ -202,6 +202,7 @@ Claude Code 会根据 `SKILL.md` 的 `description` 判断是否自动加载该 S
 ```bash
 python3 test_runner.py --structured-only
 ```
+这个命令默认只打印报告，不写 `test-report.md`；如需落盘，请显式传 `--report-file`。
 
 ### 玩法 4：指定词人风格（词人人格模式）🆕
 
@@ -413,6 +414,7 @@ python3 test_runner.py --validate-structured-examples
 python3 test_runner.py --structured-only
 # 只检查仓库自带的 input/output JSON example，不扫描 test_cases/
 # 适合在修改 schemas/*.json 或 *_example.json 后快速确认合同没有漂移
+# 默认只打印报告，不写 test-report.md；如需落盘，请显式传 --report-file
 # 不能和 --test、--output 或 --output-dir 混用
 ```
 
@@ -585,6 +587,22 @@ Intro 平均 4 小节，Outro 平均 8 小节。
 ## 附录：自动更新记录
 
 <!-- github-autopilot:updates:start -->
+
+### 2026-07-11 09:38
+
+已完成一项小而完整的开发体验改进，已由 GitHub autopilot 在验证后自动发布。
+
+改动内容：`test_runner.py --structured-only` 现在默认只把结构化 JSON 示例校验报告打印到 stdout，不再生成或覆盖默认的 `test-report.md`；如果需要保存报告，仍可显式传 `--report-file`。对应补了回归测试，并同步更新了 `README.md` 文末附录、`README-GITHUB.md` 和 `test_runner.md` 的命令说明。
+
+为什么改：`--structured-only` 是 schema/example 的低噪声快速检查模式，默认写报告会给只改 `schemas/*.json` 或 `*_example.json` 的维护者带来不必要的工作区文件。
+
+验证已通过：
+- `python3 -m unittest discover -s tests`，45 个测试通过
+- `python3 test_runner.py --no-write-report`
+- `python3 test_runner.py --no-write-report --validate-structured-examples`
+- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
+- `git diff --check`
+- 临时目录实测：`--structured-only` 默认不写 `test-report.md`，显式 `--report-file` 仍会写报告
 
 ### 2026-06-26 11:27
 
@@ -1206,5 +1224,13 @@ README 也同步了这次变化：主 [README.md](/Users/aimon/Desktop/claude co
 这次只做了一项小的开发体验改进：`test_runner.py` 新增 `--structured-only`，用于只校验 `schemas/input_example.json` 和 `schemas/output_example.json` 是否仍符合内建 schema 子集，不再为了这类结构化样例改动额外扫描 `test_cases/`。`--validate-structured-examples` 仍保留为“完整回归报告 + 结构化样例检查”的模式；`--structured-only` 会拒绝和 `--test`、`--output`、`--output-dir` 混用，避免命令语义含糊。
 
 对应回归测试已补到 `tests/test_test_runner.py`，并同步更新主 README、`README-GITHUB.md` 与 `test_runner.md` 的命令说明。验证已跑：`python3 -m unittest discover -s tests`、`python3 test_runner.py --structured-only --no-write-report`、`python3 test_runner.py --no-write-report --validate-structured-examples`、`python3 -m py_compile test_runner.py tests/test_test_runner.py`、`git diff --check` 均通过；`python3 test_runner.py --structured-only --test test_01.md --no-write-report` 按预期返回互斥参数错误。已由 GitHub autopilot 自动发布到 `main`。
+
+### 2026-07-11
+
+这次只做了一项小的开发体验改进：`test_runner.py --structured-only` 现在默认只把结构化 JSON 示例校验报告打印到 stdout，不再生成或覆盖默认的 `test-report.md`。如果确实需要保存报告，仍可显式传 `--report-file ./path/to/report.md`。
+
+原因是 `--structured-only` 的定位是低噪声快速检查 `schemas/input_example.json` / `schemas/output_example.json` 与 schema 是否漂移；默认写报告会给只改 schema 的维护者带来不必要的工作区文件。同步更新了 `tests/test_test_runner.py`、`test_runner.md`、主 README 和 `README-GITHUB.md` 的命令说明。
+
+验证已跑并通过：`python3 -m unittest discover -s tests`、`python3 test_runner.py --no-write-report`、`python3 test_runner.py --no-write-report --validate-structured-examples`、`python3 -m py_compile test_runner.py tests/test_test_runner.py`、`git diff --check`，并用临时目录确认 `python3 test_runner.py --structured-only` 默认不写 `test-report.md`、显式 `--report-file` 仍会写报告。未提交，未推送。
 
 <!-- github-autopilot:updates:end -->

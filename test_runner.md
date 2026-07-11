@@ -22,7 +22,7 @@
 - `--output-dir`：批量校验一个目录里的输出文件。目录必须已存在
 - `--report-file`：自定义 markdown 报告输出位置。父目录必须已存在，目标不能是目录
 - `--validate-structured-examples`：额外检查 `schemas/input_example.json` 和 `schemas/output_example.json` 是否通过仓库内建的 JSON Schema 子集校验
-- `--structured-only`：只检查内置 JSON example 与 schema，不扫描 `test_cases/`；不能和 `--test`、`--output` 或 `--output-dir` 混用
+- `--structured-only`：只检查内置 JSON example 与 schema，不扫描 `test_cases/`；默认只打印报告，不写 `test-report.md`，除非显式传 `--report-file`；不能和 `--test`、`--output` 或 `--output-dir` 混用
 
 已保存的 markdown 输出需要使用 UTF-8 编码。遇到无法解码或读取失败的文件时，脚本会在报告中记录 `生成结果` 的 `FAIL`；`--output-dir` 批量模式会继续处理其他文件，不会因单个损坏文件抛 traceback。
 
@@ -96,6 +96,7 @@ python3 test_runner.py --validate-structured-examples
 # 7) 只检查结构化 JSON example，不扫描 test_cases/
 python3 test_runner.py --structured-only
 # 适合只改了 schemas/*.json 或 *_example.json 时做低噪声校验
+# 默认只打印报告，不写 test-report.md；如需落盘，请显式传 --report-file
 # --structured-only 不能和 --test、--output 或 --output-dir 混用
 
 # 8) 只打印报告，不写 test-report.md

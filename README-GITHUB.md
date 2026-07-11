@@ -202,6 +202,7 @@ Claude Code 会根据 `SKILL.md` 的 `description` 判断是否自动加载该 S
 ```bash
 python3 test_runner.py --structured-only
 ```
+这个命令默认只打印报告，不写 `test-report.md`；如需落盘，请显式传 `--report-file`。
 
 ### 玩法 4：指定词人风格（词人人格模式）🆕
 
@@ -412,6 +413,7 @@ python3 test_runner.py --validate-structured-examples
 python3 test_runner.py --structured-only
 # 只检查仓库自带的 input/output JSON example，不扫描 test_cases/
 # 适合在修改 schemas/*.json 或 *_example.json 后快速确认合同没有漂移
+# 默认只打印报告，不写 test-report.md；如需落盘，请显式传 --report-file
 # 不能和 --test、--output 或 --output-dir 混用
 ```
 

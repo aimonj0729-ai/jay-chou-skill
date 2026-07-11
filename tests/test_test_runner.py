@@ -828,6 +828,39 @@ class MainTests(unittest.TestCase):
         self.assertIn("## Structured JSON Examples", report)
         self.assertNotIn("## Test 01", report)
 
+    def test_main_structured_only_does_not_write_default_report(self) -> None:
+        stdout = io.StringIO()
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            current_dir = Path.cwd()
+            try:
+                os.chdir(tmp_dir)
+                with patch.object(sys, "argv", ["test_runner.py", "--structured-only"]):
+                    with redirect_stdout(stdout):
+                        exit_code = test_runner.main()
+            finally:
+                os.chdir(current_dir)
+
+            self.assertEqual(exit_code, 0)
+            self.assertFalse((Path(tmp_dir) / "test-report.md").exists())
+
+    def test_main_structured_only_writes_explicit_report_file(self) -> None:
+        stdout = io.StringIO()
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            report_path = Path(tmp_dir) / "structured-report.md"
+            with patch.object(
+                sys,
+                "argv",
+                ["test_runner.py", "--structured-only", "--report-file", str(report_path)],
+            ):
+                with redirect_stdout(stdout):
+                    exit_code = test_runner.main()
+
+            self.assertEqual(exit_code, 0)
+            self.assertTrue(report_path.exists())
+            self.assertIn("## Structured JSON Examples", report_path.read_text(encoding="utf-8"))
+
     def test_main_structured_only_rejects_test_case_args(self) -> None:
         with patch.object(
             sys,

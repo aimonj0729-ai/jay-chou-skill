@@ -98,8 +98,8 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--report-file",
-        default=str(DEFAULT_REPORT_PATH),
-        help="Where to write the markdown report. Parent directory must already exist. Default: ./test-report.md",
+        default=None,
+        help="Where to write the markdown report. Parent directory must already exist. Default: ./test-report.md, except --structured-only prints to stdout unless this is set.",
     )
     parser.add_argument(
         "--no-write-report",
@@ -752,8 +752,9 @@ def main() -> int:
     )
     report = build_report(results, structured_example_checks=structured_example_checks)
 
-    if not args.no_write_report:
-        report_path = resolve_report_file_path(args.report_file)
+    should_write_report = not args.no_write_report and (not args.structured_only or args.report_file is not None)
+    if should_write_report:
+        report_path = resolve_report_file_path(args.report_file or str(DEFAULT_REPORT_PATH))
         try:
             report_path.write_text(report, encoding="utf-8")
         except OSError as exc:
