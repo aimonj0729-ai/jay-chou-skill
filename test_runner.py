@@ -324,6 +324,16 @@ def validate_json_instance_against_schema(instance: object, schema: object, path
             errors.append(f"{path}: expected at least {min_items} items, got {len(instance)}")
         if max_items is not None and len(instance) > max_items:
             errors.append(f"{path}: expected at most {max_items} items, got {len(instance)}")
+        if schema.get("uniqueItems") is True:
+            for left_index, left_item in enumerate(instance):
+                for right_index, right_item in enumerate(instance[left_index + 1 :], start=left_index + 1):
+                    if left_item == right_item:
+                        errors.append(
+                            f"{path}: expected unique items, duplicate at indexes {left_index} and {right_index}"
+                        )
+                        break
+                if errors and errors[-1].startswith(f"{path}: expected unique items"):
+                    break
 
         item_schema = schema.get("items")
         if item_schema is not None:

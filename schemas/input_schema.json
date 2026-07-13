@@ -41,6 +41,7 @@
     "genre_tags": {
       "type": "array",
       "description": "风格标签，多选。对照 system_prompt.md §风格参数库 A–E。",
+      "uniqueItems": true,
       "items": {
         "type": "string",
         "enum": [
@@ -71,6 +72,7 @@
     "instruments": {
       "type": "array",
       "description": "必须出现的乐器。对照 arrangement_planner.md 的音色库。",
+      "uniqueItems": true,
       "items": {
         "type": "string",
         "examples": ["acoustic-piano", "rhodes-ep", "strings", "pad-warm", "nylon-guitar", "guzheng", "dizi", "pipa"]
@@ -94,11 +96,13 @@
         "duration_sec": { "type": "integer", "minimum": 60, "maximum": 360 },
         "ban_elements": {
           "type": "array",
+          "uniqueItems": true,
           "items": { "type": "string" },
           "description": "禁用元素。例：['rap', 'assisted-vocal', 'english-lyrics']"
         },
         "required_elements": {
           "type": "array",
+          "uniqueItems": true,
           "items": { "type": "string" },
           "description": "必须出现的元素。例：['piano-intro', 'bridge-falsetto']"
         }
@@ -167,6 +171,7 @@
         "focus_dimensions": {
           "type": "array",
           "description": "指定融合重点维度（可选，不指定则按默认权重）。",
+          "uniqueItems": true,
           "items": {
             "type": "string",
             "enum": ["harmony", "rhythm", "arrangement", "melody", "structure", "lyrics"]

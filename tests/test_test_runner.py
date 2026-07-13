@@ -119,6 +119,43 @@ class StructuredExampleFilesTests(unittest.TestCase):
 
         self.assertEqual(errors, ["$: expected at least 1 characters, got 0"])
 
+    def test_unique_items_rejects_duplicate_array_values(self) -> None:
+        errors = test_runner.validate_json_instance_against_schema(
+            ["轻 R&B", "小调都市感", "轻 R&B"],
+            {"type": "array", "uniqueItems": True},
+        )
+
+        self.assertEqual(errors, ["$: expected unique items, duplicate at indexes 0 and 2"])
+
+    def test_input_schema_rejects_duplicate_array_parameters(self) -> None:
+        schema_path = ROOT_DIR / "schemas" / "input_schema.json"
+        schema = json.loads(schema_path.read_text(encoding="utf-8"))
+        example_path = ROOT_DIR / "schemas" / "input_example.json"
+        payload = json.loads(example_path.read_text(encoding="utf-8"))
+
+        errors = test_runner.validate_json_instance_against_schema(
+            {
+                **payload,
+                "genre_tags": [
+                    "中国风叙事",
+                    "电影感抒情",
+                    "中国风叙事",
+                ],
+                "fusion": {
+                    **payload["fusion"],
+                    "focus_dimensions": [
+                        "arrangement",
+                        "rhythm",
+                        "arrangement",
+                    ],
+                },
+            },
+            schema,
+        )
+
+        self.assertIn("$.genre_tags: expected unique items, duplicate at indexes 0 and 2", errors)
+        self.assertIn("$.fusion.focus_dimensions: expected unique items, duplicate at indexes 0 and 2", errors)
+
     def test_bundled_schemas_reject_empty_required_content(self) -> None:
         input_schema = json.loads(
             (ROOT_DIR / "schemas" / "input_schema.json").read_text(encoding="utf-8")
