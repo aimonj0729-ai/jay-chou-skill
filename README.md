@@ -592,7 +592,7 @@ Intro 平均 4 小节，Outro 平均 8 小节。
 
 ### 2026-07-14 09:34
 
-已完成一项小改进，没有提交也没有推送。
+已完成一项小改进，已由 GitHub autopilot 在验证后自动发布。
 
 改动内容：
 - `test_runner.py` 的内建 JSON Schema 子集新增 `pattern` 校验。
