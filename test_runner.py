@@ -351,10 +351,13 @@ def validate_json_instance_against_schema(instance: object, schema: object, path
     if expected_type == "string" and isinstance(instance, str):
         min_length = schema.get("minLength")
         max_length = schema.get("maxLength")
+        pattern = schema.get("pattern")
         if min_length is not None and len(instance) < min_length:
             errors.append(f"{path}: expected at least {min_length} characters, got {len(instance)}")
         if max_length is not None and len(instance) > max_length:
             errors.append(f"{path}: expected at most {max_length} characters, got {len(instance)}")
+        if pattern is not None and re.search(pattern, instance) is None:
+            errors.append(f"{path}: expected string to match pattern {pattern!r}")
 
     one_of = schema.get("oneOf")
     if one_of is not None:

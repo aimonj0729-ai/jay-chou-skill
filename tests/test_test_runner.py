@@ -119,6 +119,17 @@ class StructuredExampleFilesTests(unittest.TestCase):
 
         self.assertEqual(errors, ["$: expected at least 1 characters, got 0"])
 
+    def test_pattern_rejects_mismatched_strings(self) -> None:
+        errors = test_runner.validate_json_instance_against_schema(
+            "75/25",
+            {"type": "string", "pattern": "^(90:10|70:30|50:50|30:70)$"},
+        )
+
+        self.assertEqual(
+            errors,
+            ["$: expected string to match pattern '^(90:10|70:30|50:50|30:70)$'"],
+        )
+
     def test_unique_items_rejects_duplicate_array_values(self) -> None:
         errors = test_runner.validate_json_instance_against_schema(
             ["轻 R&B", "小调都市感", "轻 R&B"],
@@ -155,6 +166,27 @@ class StructuredExampleFilesTests(unittest.TestCase):
 
         self.assertIn("$.genre_tags: expected unique items, duplicate at indexes 0 and 2", errors)
         self.assertIn("$.fusion.focus_dimensions: expected unique items, duplicate at indexes 0 and 2", errors)
+
+    def test_input_schema_rejects_invalid_mixed_lyricist_ratio_format(self) -> None:
+        schema_path = ROOT_DIR / "schemas" / "input_schema.json"
+        schema = json.loads(schema_path.read_text(encoding="utf-8"))
+        example_path = ROOT_DIR / "schemas" / "input_example.json"
+        payload = json.loads(example_path.read_text(encoding="utf-8"))
+
+        errors = test_runner.validate_json_instance_against_schema(
+            {
+                **payload,
+                "lyricist_persona": {
+                    "primary": "fang-wenshan",
+                    "secondary": "jay-self",
+                    "ratio": "75/25",
+                },
+            },
+            schema,
+        )
+
+        self.assertTrue(errors)
+        self.assertTrue(any("$.lyricist_persona: expected exactly one oneOf match, got 0" in error for error in errors))
 
     def test_bundled_schemas_reject_empty_required_content(self) -> None:
         input_schema = json.loads(
@@ -203,6 +235,25 @@ class StructuredExampleFilesTests(unittest.TestCase):
         self.assertIn(payload["risk_check"]["overall"], {"PASS", "WARN", "BLOCK"})
         self.assertEqual(payload["fusion_notes"]["fusion_style"], "electronic")
         self.assertEqual(payload["fusion_notes"]["ratio"], "50:50")
+
+    def test_output_schema_rejects_invalid_fusion_note_ratio_format(self) -> None:
+        schema_path = ROOT_DIR / "schemas" / "output_schema.json"
+        schema = json.loads(schema_path.read_text(encoding="utf-8"))
+        example_path = ROOT_DIR / "schemas" / "output_example.json"
+        payload = json.loads(example_path.read_text(encoding="utf-8"))
+
+        errors = test_runner.validate_json_instance_against_schema(
+            {
+                **payload,
+                "fusion_notes": {
+                    **payload["fusion_notes"],
+                    "ratio": "half-and-half",
+                },
+            },
+            schema,
+        )
+
+        self.assertTrue(any("$.fusion_notes.ratio" in error for error in errors))
 
     def test_bundled_structured_examples_pass_builtin_schema_contract_checks(self) -> None:
         checks = test_runner.validate_structured_examples()

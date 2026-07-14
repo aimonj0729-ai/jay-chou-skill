@@ -145,6 +145,7 @@
             "ratio": {
               "type": "string",
               "description": "主次比例，如 '70:30'。",
+              "pattern": "^(90:10|70:30|50:50|30:70)$",
               "default": "70:30"
             }
           }
