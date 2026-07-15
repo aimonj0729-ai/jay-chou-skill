@@ -190,7 +190,7 @@ Claude Code 会根据 `SKILL.md` 的 `description` 判断是否自动加载该 S
 - `schemas/input_example.json`：完整演示 JSON 请求如何表达主题、情绪、词人人格和 `fusion`
 - `schemas/output_example.json`：对应的 10 段 JSON 响应，包含 `risk_check` 与融合模式下的 `fusion_notes`
 
-当前 schema 还额外收紧了 8 条最容易踩坑的嵌套合同：
+当前 schema 还额外收紧了 9 条最容易踩坑的嵌套合同：
 - 顶层和主要嵌套对象不接受未声明字段，能拦住拼错字段名或残留旧字段
 - `emotion` 不能是空对象；至少给 `start` 或 `end`
 - 输入里的 `genre_tags`、`instruments`、`hard_constraints` 元素列表和 `fusion.focus_dimensions` 不接受重复项，避免同一参数被重复计权
@@ -199,6 +199,7 @@ Claude Code 会根据 `SKILL.md` 的 `description` 判断是否自动加载该 S
 - 输出第 4–8 段和第 10 段不能只传空对象；和声、旋律、歌词、编曲、Hook 与去相似化段落都必须包含最低可用字段
 - `lyric_direction.sample_lines[]` 的每一项都必须同时带 `section` 和 `text`
 - `de_similarization.actions[]` 的每一项都必须同时带 `target_section`、`issue` 和 `rewrite`
+- 结构化输出如果包含 `fusion_notes`，必须至少带 `fusion_style`、`ratio` 和 `key_fusion_points`，避免空对象伪装成融合说明
 
 如果你想确认这两份样例没有和 schema 漂移，可以直接运行：
 ```bash
@@ -373,7 +374,7 @@ python3 test_runner.py --structured-only
 - ✓ 已保存输出若损坏或不是 UTF-8，会在报告中记为 `生成结果` 的 `FAIL`；批量模式继续检查其他文件，不会抛 traceback
 
 `schemas/input_schema.json` 和 `schemas/output_schema.json` 仍然保留，主要用于结构化集成和人工对照；当前 `test_runner.py` 不会直接对 markdown 输出执行通用 JSON Schema 校验。结构化输出里的 `risk_check.overall` 也与文档中的 Similarity Guard 保持一致，统一使用 `PASS` / `WARN` / `BLOCK`。
-如果你需要一个现成的结构化对接起点，可以直接复制 `schemas/input_example.json` 和 `schemas/output_example.json`；现在 `tests/test_test_runner.py` 会校验它们持续满足 schema 合同，并会覆盖顶层和主要嵌套对象的未知字段拒绝规则。内建校验也支持 `minLength` / `maxLength`、`pattern` 和 `uniqueItems`，因此空的 `theme`、情绪锚点、`reference_mood` 或 `song_concept` 不会再被当作有效内容，比例字符串格式错误、重复的输入标签、乐器或融合维度也会被拦截。`python3 test_runner.py --validate-structured-examples` 可以在 CLI 里显式跑这组检查。
+如果你需要一个现成的结构化对接起点，可以直接复制 `schemas/input_example.json` 和 `schemas/output_example.json`；现在 `tests/test_test_runner.py` 会校验它们持续满足 schema 合同，并会覆盖顶层和主要嵌套对象的未知字段拒绝规则。内建校验也支持 `minLength` / `maxLength`、`pattern` 和 `uniqueItems`，因此空的 `theme`、情绪锚点、`reference_mood`、`song_concept` 或 `fusion_notes` 不会再被当作有效内容，比例字符串格式错误、重复的输入标签、乐器或融合维度也会被拦截。`python3 test_runner.py --validate-structured-examples` 可以在 CLI 里显式跑这组检查。
 
 **可集成 CI/CD**：
 ```bash
@@ -589,6 +590,22 @@ Intro 平均 4 小节，Outro 平均 8 小节。
 ## 附录：自动更新记录
 
 <!-- github-autopilot:updates:start -->
+
+### 2026-07-15 12:02
+
+已完成一项小范围结构化合同补强，已由 GitHub autopilot 在验证后自动发布。
+
+改动内容：
+- 收紧 schemas/output_schema.json：`fusion_notes` 一旦出现，必须包含 `fusion_style`、`ratio`、`key_fusion_points`，避免 `{}` 被误收为有效融合说明。
+- 在 tests/test_test_runner.py 增加回归测试，锁定空 `fusion_notes` 会被拒绝。
+- 同步更新 README.md、`README-GITHUB.md` 和 test_runner.md 的结构化 schema 说明；没有手动追加 README 文末自动更新附录。
+
+验证已通过：
+- `python3 -m unittest discover -s tests -v`：51 tests OK
+- `python3 test_runner.py --structured-only --no-write-report`
+- `python3 test_runner.py --no-write-report --validate-structured-examples`
+- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
+- `git diff --check`
 
 ### 2026-07-14 09:34
 

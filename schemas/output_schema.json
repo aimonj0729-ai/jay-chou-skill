@@ -226,6 +226,7 @@
     "fusion_notes": {
       "type": "object",
       "description": "融合说明（仅融合模式输出）。对应 markdown 第 10 段后的附加说明；若继续编号，使用第 11 段也合法。",
+      "required": ["fusion_style", "ratio", "key_fusion_points"],
       "additionalProperties": false,
       "properties": {
         "fusion_style": { "type": "string", "description": "融合风格名称。" },

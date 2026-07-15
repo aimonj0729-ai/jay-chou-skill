@@ -255,6 +255,21 @@ class StructuredExampleFilesTests(unittest.TestCase):
 
         self.assertTrue(any("$.fusion_notes.ratio" in error for error in errors))
 
+    def test_output_schema_rejects_empty_fusion_notes_when_present(self) -> None:
+        schema_path = ROOT_DIR / "schemas" / "output_schema.json"
+        schema = json.loads(schema_path.read_text(encoding="utf-8"))
+        example_path = ROOT_DIR / "schemas" / "output_example.json"
+        payload = json.loads(example_path.read_text(encoding="utf-8"))
+
+        errors = test_runner.validate_json_instance_against_schema(
+            {**payload, "fusion_notes": {}},
+            schema,
+        )
+
+        self.assertIn("$.fusion_notes: missing required property fusion_style", errors)
+        self.assertIn("$.fusion_notes: missing required property ratio", errors)
+        self.assertIn("$.fusion_notes: missing required property key_fusion_points", errors)
+
     def test_bundled_structured_examples_pass_builtin_schema_contract_checks(self) -> None:
         checks = test_runner.validate_structured_examples()
         statuses = {check.label: check.status for check in checks}
