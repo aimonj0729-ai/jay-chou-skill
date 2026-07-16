@@ -593,7 +593,7 @@ Intro 平均 4 小节，Outro 平均 8 小节。
 
 ### 2026-07-16 09:35
 
-已完成一项小范围改进，没有提交或推送。
+已完成一项小范围改进，已由 GitHub autopilot 在验证后自动发布。
 
 这次收紧了结构化输出合同：`schemas/output_schema.json` 现在会拒绝空的歌词示例字段、空的去相似化动作字段，以及空的 `fusion_notes.fusion_style` / 空 `key_fusion_points`。原因是这些字段虽然之前“存在”，但可以用空字符串或空列表占位，接入方会误收半残 JSON。同步更新了 `README.md`、`README-GITHUB.md`、`test_runner.md`，并在 `tests/test_test_runner.py` 增加回归测试。
 
