@@ -141,8 +141,8 @@
             "required": ["section", "text"],
             "additionalProperties": false,
             "properties": {
-              "section": { "type": "string" },
-              "text": { "type": "string" }
+              "section": { "type": "string", "minLength": 1 },
+              "text": { "type": "string", "minLength": 1 }
             }
           },
           "description": "3–5 句原创示例。必须 100% 原创。"
@@ -215,9 +215,9 @@
             "required": ["target_section", "issue", "rewrite"],
             "additionalProperties": false,
             "properties": {
-              "target_section": { "type": "string" },
-              "issue": { "type": "string" },
-              "rewrite": { "type": "string" }
+              "target_section": { "type": "string", "minLength": 1 },
+              "issue": { "type": "string", "minLength": 1 },
+              "rewrite": { "type": "string", "minLength": 1 }
             }
           }
         }
@@ -229,7 +229,7 @@
       "required": ["fusion_style", "ratio", "key_fusion_points"],
       "additionalProperties": false,
       "properties": {
-        "fusion_style": { "type": "string", "description": "融合风格名称。" },
+        "fusion_style": { "type": "string", "minLength": 1, "description": "融合风格名称。" },
         "ratio": {
           "type": "string",
           "description": "融合比例，如 '70:30'。",
@@ -247,7 +247,8 @@
         },
         "key_fusion_points": {
           "type": "array",
-          "items": { "type": "string" },
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 },
           "description": "关键融合决策说明。"
         },
         "risk_notes": {

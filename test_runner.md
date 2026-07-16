@@ -26,7 +26,7 @@
 
 已保存的 markdown 输出需要使用 UTF-8 编码。遇到无法解码或读取失败的文件时，脚本会在报告中记录 `生成结果` 的 `FAIL`；`--output-dir` 批量模式会继续处理其他文件，不会因单个损坏文件抛 traceback。
 
-内建 JSON Schema 子集现在会检查 `type`、`enum`、`required`、`minLength` / `maxLength`、`pattern`、`minItems` / `maxItems`、`uniqueItems`、`minimum` / `maximum`、`oneOf`、`anyOf` 和 `additionalProperties`。两份结构化 schema 的顶层和主要嵌套对象已设置为不接受未声明字段，避免示例里出现拼写错误或旧字段时仍被判通过。输入 schema 的主题、情绪锚点和参考画面，以及输出 schema 的核心概念都不能再用空字符串占位；输入里的风格标签、乐器、硬性限制元素和融合重点维度也不能重复，混合词人人格比例和输出融合比例必须匹配受支持的比例格式。输出 schema 还要求第 4–8 段、第 10 段，以及出现时的 `fusion_notes` 包含各自的最低可用字段，不再接受 `chord_direction: {}`、`hook_concept: {}`、`de_similarization: {}` 或 `fusion_notes: {}` 这类只有段落名、没有实际内容的对象；`emotional_arc.anchors` 和 `lyric_direction.sample_lines` 也都严格限制为 3–5 项，与 `system_prompt.md` 的输出模板一致。
+内建 JSON Schema 子集现在会检查 `type`、`enum`、`required`、`minLength` / `maxLength`、`pattern`、`minItems` / `maxItems`、`uniqueItems`、`minimum` / `maximum`、`oneOf`、`anyOf` 和 `additionalProperties`。两份结构化 schema 的顶层和主要嵌套对象已设置为不接受未声明字段，避免示例里出现拼写错误或旧字段时仍被判通过。输入 schema 的主题、情绪锚点和参考画面，以及输出 schema 的核心概念都不能再用空字符串占位；输入里的风格标签、乐器、硬性限制元素和融合重点维度也不能重复，混合词人人格比例和输出融合比例必须匹配受支持的比例格式。输出 schema 还要求第 4–8 段、第 10 段，以及出现时的 `fusion_notes` 包含各自的最低可用字段，不再接受 `chord_direction: {}`、`hook_concept: {}`、`de_similarization: {}` 或 `fusion_notes: {}` 这类只有段落名、没有实际内容的对象；`lyric_direction.sample_lines[]`、`de_similarization.actions[]` 和 `fusion_notes.key_fusion_points[]` 里的必填文本也不能是空字符串，`fusion_notes.key_fusion_points` 至少要有 1 项。`emotional_arc.anchors` 和 `lyric_direction.sample_lines` 也都严格限制为 3–5 项，与 `system_prompt.md` 的输出模板一致。
 
 通用检查包括（仅适用于**预期应输出完整 10 段方案**的场景）：
 

@@ -197,9 +197,9 @@ Claude Code 会根据 `SKILL.md` 的 `description` 判断是否自动加载该 S
 - 混合词人人格的 `lyricist_persona.ratio` 与输出里的 `fusion_notes.ratio` 必须使用 `90:10` / `70:30` / `50:50` / `30:70` 这类受支持比例
 - `emotional_arc.anchors` 和 `lyric_direction.sample_lines` 都限制为 3–5 项，与 Skill 输出模板一致
 - 输出第 4–8 段和第 10 段不能只传空对象；和声、旋律、歌词、编曲、Hook 与去相似化段落都必须包含最低可用字段
-- `lyric_direction.sample_lines[]` 的每一项都必须同时带 `section` 和 `text`
-- `de_similarization.actions[]` 的每一项都必须同时带 `target_section`、`issue` 和 `rewrite`
-- 结构化输出如果包含 `fusion_notes`，必须至少带 `fusion_style`、`ratio` 和 `key_fusion_points`，避免空对象伪装成融合说明
+- `lyric_direction.sample_lines[]` 的每一项都必须同时带非空的 `section` 和 `text`
+- `de_similarization.actions[]` 的每一项都必须同时带非空的 `target_section`、`issue` 和 `rewrite`
+- 结构化输出如果包含 `fusion_notes`，必须至少带非空的 `fusion_style`、合法比例 `ratio`，以及至少 1 条非空 `key_fusion_points`，避免空对象或空列表伪装成融合说明
 
 如果你想确认这两份样例没有和 schema 漂移，可以直接运行：
 ```bash
@@ -374,7 +374,7 @@ python3 test_runner.py --structured-only
 - ✓ 已保存输出若损坏或不是 UTF-8，会在报告中记为 `生成结果` 的 `FAIL`；批量模式继续检查其他文件，不会抛 traceback
 
 `schemas/input_schema.json` 和 `schemas/output_schema.json` 仍然保留，主要用于结构化集成和人工对照；当前 `test_runner.py` 不会直接对 markdown 输出执行通用 JSON Schema 校验。结构化输出里的 `risk_check.overall` 也与文档中的 Similarity Guard 保持一致，统一使用 `PASS` / `WARN` / `BLOCK`。
-如果你需要一个现成的结构化对接起点，可以直接复制 `schemas/input_example.json` 和 `schemas/output_example.json`；现在 `tests/test_test_runner.py` 会校验它们持续满足 schema 合同，并会覆盖顶层和主要嵌套对象的未知字段拒绝规则。内建校验也支持 `minLength` / `maxLength`、`pattern` 和 `uniqueItems`，因此空的 `theme`、情绪锚点、`reference_mood`、`song_concept` 或 `fusion_notes` 不会再被当作有效内容，比例字符串格式错误、重复的输入标签、乐器或融合维度也会被拦截。`python3 test_runner.py --validate-structured-examples` 可以在 CLI 里显式跑这组检查。
+如果你需要一个现成的结构化对接起点，可以直接复制 `schemas/input_example.json` 和 `schemas/output_example.json`；现在 `tests/test_test_runner.py` 会校验它们持续满足 schema 合同，并会覆盖顶层和主要嵌套对象的未知字段拒绝规则。内建校验也支持 `minLength` / `maxLength`、`pattern` 和 `uniqueItems`，因此空的 `theme`、情绪锚点、`reference_mood`、`song_concept`、歌词示例句字段、去相似化动作字段或 `fusion_notes` 关键字段不会再被当作有效内容，比例字符串格式错误、重复的输入标签、乐器或融合维度也会被拦截。`python3 test_runner.py --validate-structured-examples` 可以在 CLI 里显式跑这组检查。
 
 **可集成 CI/CD**：
 ```bash
@@ -590,6 +590,19 @@ Intro 平均 4 小节，Outro 平均 8 小节。
 ## 附录：自动更新记录
 
 <!-- github-autopilot:updates:start -->
+
+### 2026-07-16 09:35
+
+已完成一项小范围改进，没有提交或推送。
+
+这次收紧了结构化输出合同：`schemas/output_schema.json` 现在会拒绝空的歌词示例字段、空的去相似化动作字段，以及空的 `fusion_notes.fusion_style` / 空 `key_fusion_points`。原因是这些字段虽然之前“存在”，但可以用空字符串或空列表占位，接入方会误收半残 JSON。同步更新了 `README.md`、`README-GITHUB.md`、`test_runner.md`，并在 `tests/test_test_runner.py` 增加回归测试。
+
+验证已通过：
+- `python3 -m unittest discover -s tests -v`：52 tests OK
+- `python3 test_runner.py --structured-only --no-write-report`
+- `python3 test_runner.py --no-write-report --validate-structured-examples`
+- `python3 -m py_compile test_runner.py tests/test_test_runner.py`
+- `git diff --check`
 
 ### 2026-07-15 12:02
 

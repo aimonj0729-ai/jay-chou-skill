@@ -441,6 +441,49 @@ class StructuredExampleFilesTests(unittest.TestCase):
         self.assertTrue(any("$.de_similarization.actions[1]" in error for error in errors))
         self.assertTrue(any("$.de_similarization.actions[2]" in error for error in errors))
 
+    def test_output_schema_rejects_empty_structured_detail_values(self) -> None:
+        schema_path = ROOT_DIR / "schemas" / "output_schema.json"
+        schema = json.loads(schema_path.read_text(encoding="utf-8"))
+        example_path = ROOT_DIR / "schemas" / "output_example.json"
+        payload = json.loads(example_path.read_text(encoding="utf-8"))
+
+        errors = test_runner.validate_json_instance_against_schema(
+            {
+                **payload,
+                "lyric_direction": {
+                    **payload["lyric_direction"],
+                    "sample_lines": [
+                        {"section": "", "text": ""},
+                        *payload["lyric_direction"]["sample_lines"][1:],
+                    ],
+                },
+                "de_similarization": {
+                    **payload["de_similarization"],
+                    "actions": [
+                        {
+                            "target_section": "",
+                            "issue": "",
+                            "rewrite": "",
+                        },
+                    ],
+                },
+                "fusion_notes": {
+                    **payload["fusion_notes"],
+                    "fusion_style": "",
+                    "key_fusion_points": [],
+                },
+            },
+            schema,
+        )
+
+        self.assertIn("$.lyric_direction.sample_lines[0].section: expected at least 1 characters, got 0", errors)
+        self.assertIn("$.lyric_direction.sample_lines[0].text: expected at least 1 characters, got 0", errors)
+        self.assertIn("$.de_similarization.actions[0].target_section: expected at least 1 characters, got 0", errors)
+        self.assertIn("$.de_similarization.actions[0].issue: expected at least 1 characters, got 0", errors)
+        self.assertIn("$.de_similarization.actions[0].rewrite: expected at least 1 characters, got 0", errors)
+        self.assertIn("$.fusion_notes.fusion_style: expected at least 1 characters, got 0", errors)
+        self.assertIn("$.fusion_notes.key_fusion_points: expected at least 1 items, got 0", errors)
+
     def test_output_schema_rejects_more_than_five_emotional_anchors(self) -> None:
         schema_path = ROOT_DIR / "schemas" / "output_schema.json"
         schema = json.loads(schema_path.read_text(encoding="utf-8"))
